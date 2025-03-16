@@ -1,0 +1,71 @@
+{
+  "name": "@locker-money/sdk",
+  "version": "0.0.1-alpha.2",
+  "author": "Locker",
+  "main": "./_cjs/index.js",
+  "module": "./_esm/index.js",
+  "types": "./_types/index.d.ts",
+  "typings": "./_types/index.d.ts",
+  "type": "module",
+  "sideEffects": false,
+  "description": "A utility library for enhancing your ERC-4337 experience",
+  "keywords": [
+    "ethereum",
+    "erc-4337",
+    "erc-6900",
+    "splits",
+    "round up savings",
+    "yield"
+  ],
+  "license": "MIT",
+  "files": [
+    "_esm",
+    "_cjs",
+    "_types",
+    "./**/*.ts",
+    "!_esm/**/*.tsbuildinfo",
+    "!_cjs/**/*.tsbuildinfo",
+    "!_types/**/*.tsbuildinfo",
+    "!.env",
+    "!./**/*.test.ts",
+    "!.changeset"
+  ],
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "scripts": {
+    "build": "bun run clean && bun run build:cjs && bun run build:esm && bun run build:types",
+    "build:cjs": "tsc --module commonjs --outDir ./_cjs --removeComments --verbatimModuleSyntax false && printf '{\"type\":\"commonjs\"}' > ./_cjs/package.json",
+    "build:esm": "tsc --module es2015 --outDir ./_esm && printf '{\"type\": \"module\",\"sideEffects\":false}' > ./_esm/package.json",
+    "build:types": "tsc --module esnext --declarationDir ./_types --emitDeclarationOnly --declaration --declarationMap",
+    "clean": "rimraf _esm _cjs _types",
+    "format": "biome format . --write",
+    "lint": "biome check .",
+    "lint:fix": "bun run lint --apply"
+  },
+  "exports": {
+    ".": {
+      "types": "./_types/index.d.ts",
+      "import": "./_esm/index.js",
+      "default": "./_cjs/index.js"
+    },
+    "./accounts": {
+      "types": "./_types/accounts/index.d.ts",
+      "import": "./_esm/accounts/index.js",
+      "default": "./_cjs/accounts/index.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "accounts": [
+        "./_types/accounts/index.d.ts"
+      ]
+    }
+  },
+  "dependencies": {
+    "rimraf": "^6.0.1"
+  }
+}

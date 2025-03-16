@@ -1,11 +1,11 @@
 ## Getting Started
 ```zsh
-pnpm add @locker-money/sdk
+pnpm add @locker-labs/sdk
 ```
 
 ## Usage
 ```ts
-import { createLockerClient } from "@locker-money/sdk";
+import { createLockerClient } from "@locker-labs/sdk";
 
 const message = createLockerClient()
 console.log(message)

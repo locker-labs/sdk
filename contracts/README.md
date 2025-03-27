@@ -1,66 +1,16 @@
-## Foundry
+# Locker Labs Contracts
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+This repository contains the smart contracts for Locker Labs. The contracts include various plugins, such as the Savings Plugin and the Split Plugin, that extend functionality and automate token management.
 
-Foundry consists of:
+## Plugins
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+### Savings Plugin
+Enables users to automatically save a portion of their tokens by splitting transfers to a designated savings address.
 
-## Documentation
+- Base Sepolia:
+[0x644Be3a596F082CC36D0bD929ABe855180536ac3](https://sepolia.etherscan.io/address/0x644Be3a596F082CC36D0bD929ABe855180536ac3)
 
-https://book.getfoundry.sh/
+### Split Plugin
+Allows users to split token transfers among multiple recipients automatically, simplifying fund distribution.
 
-## Usage
-
-### Build
-
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+- Base Sepolia: [0x7AA0c9376178EBC081eAd5C49801C86Ce834D629](https://sepolia.basescan.org/address/0x7AA0c9376178EBC081eAd5C49801C86Ce834D629)

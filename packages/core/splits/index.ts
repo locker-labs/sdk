@@ -1,6 +1,6 @@
 import { createExtendedSplitsClient,type ExtendedClientParams } from "./utils/extendedClient";
 import { isSplitPluginInstalled } from "./utils/helpers";
-import { SPLIT_PLUGIN_ADDRESS } from "./def/config";
+import { SPLIT_PLUGIN_ADDRESS } from "./def/splitPluginConfig";
 
 export type LockerSplitClient = {
   createSplit: (

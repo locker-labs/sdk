@@ -31,6 +31,7 @@
     "!.changeset"
   ],
   "devDependencies": {
+    "@account-kit/plugingen": "^4.19.0",
     "@types/bun": "latest",
     "@types/node-fetch": "^2.6.12"
   },

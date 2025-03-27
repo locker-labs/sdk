@@ -54,4 +54,3 @@ esbuild-why-permissionless*
 .env.test.local
 .env.production.local
 .envrc
-.vscode

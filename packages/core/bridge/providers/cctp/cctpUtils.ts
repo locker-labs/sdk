@@ -1,32 +1,36 @@
 // src/utils/cctpUtils.ts
-import 'dotenv/config';
 import * as anchor from "@coral-xyz/anchor";
-import { PublicKey, Keypair } from '@solana/web3.js';
-import * as spl from '@solana/spl-token';
+import { PublicKey, Connection } from '@solana/web3.js';
 import fetch from 'node-fetch';
-import { hexToBytes } from 'viem';
 
-import { type MessageTransmitter } from './types/message_transmitter';
-import { type TokenMessengerMinter } from './types/token_messenger_minter';
-import { CCTP_DOMAIN_IDS, CIRCLE_CONFIG, type MODE } from './cctpConstants';
+import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
 
-
-/**
- * Creates an Anchor connection (requires env vars: ANCHOR_PROVIDER_URL, ANCHOR_WALLET, etc.)
- */
-export const getAnchorConnection = () => {
-    const provider = anchor.AnchorProvider.env();
-    anchor.setProvider(provider);
-    return provider;
-};
+import { type MessageTransmitter } from './target/types/message_transmitter';
+import { type TokenMessengerMinter } from './target/types/token_messenger_minter';
+import * as MessageTransmitterIDL from './target/idl/message_transmitter.json';
+import * as TokenMessengerMinterIDL from './target/idl/token_messenger_minter.json';
+import { CCTP_DOMAIN_IDS } from './cctpConstants';
+import type { IBridgeFromSolanaParams } from "../../types";
 
 /**
  * Returns the Anchor programs for MessageTransmitter + TokenMessengerMinter.
  */
-export const getPrograms = () => {
+export const getPrograms = (provider: anchor.AnchorProvider) => {
     // Initialize contracts
-    const messageTransmitterProgram = anchor.workspace.MessageTransmitter as anchor.Program<MessageTransmitter>;
-    const tokenMessengerMinterProgram = anchor.workspace.TokenMessengerMinter as anchor.Program<TokenMessengerMinter>;
+    // Initialize workspace with explicit program IDs from devnet
+    const messageTransmitterProgram = new anchor.Program(
+        // You'll need to import these IDLs
+        MessageTransmitterIDL as anchor.Idl,
+        new PublicKey("CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd"),
+        provider
+    ) as anchor.Program<MessageTransmitter>;
+
+    const tokenMessengerMinterProgram = new anchor.Program(
+        TokenMessengerMinterIDL as anchor.Idl,
+        new PublicKey("CCTPiPYPc6AsJuwueEnWgSgucamXDZwBd53dQ11YiKX3"),
+        provider
+    ) as anchor.Program<TokenMessengerMinter>;
+
     return { messageTransmitterProgram, tokenMessengerMinterProgram };
 }
 /**
@@ -55,117 +59,6 @@ export const getDepositForBurnPdas = (
         authorityPda,
     };
 };
-
-/**
- * depositForBurn logic that actually initiates the Solana -> EVM bridging.
- */
-export async function cctpDepositForBurn(params: {
-    solanaSigner: Keypair;
-    splTokenMintAddress: string;
-    userTokenAccount: PublicKey;
-    amount: number;
-    destinationDomainId: number;
-    evmRecipientAddress: string;
-    mode: MODE;
-}): Promise<void> {
-    const {
-        solanaSigner,
-        userTokenAccount,
-        splTokenMintAddress,
-        amount,
-        destinationDomainId,
-        evmRecipientAddress,
-        mode,
-    } = params;
-
-    const {
-        usdcAddress,
-        irisApiUrl,
-    } = CIRCLE_CONFIG[mode];
-
-    if (splTokenMintAddress !== usdcAddress) {
-        throw new Error(`Cannot bridge token ${splTokenMintAddress} with CCTP in mode ${mode}. Expected USDC at ${usdcAddress}.`);
-    }
-
-    // Create a new Provider based on the signer's Keypair
-    const baseProvider = getAnchorConnection();
-    const provider = new anchor.AnchorProvider(
-        baseProvider.connection,
-        new anchor.Wallet(solanaSigner),
-        {}
-    );
-    anchor.setProvider(provider);
-
-    const { messageTransmitterProgram, tokenMessengerMinterProgram } = getPrograms();
-
-    // Convert the EVM address into a 32-byte format
-    const evmRecipientBytes32 = evmAddressToBytes32(evmRecipientAddress);
-    const mintRecipient = new PublicKey(hexToBytes(evmRecipientBytes32));
-
-    // Get PDAs
-    const usdcPublicKey = new PublicKey(splTokenMintAddress);
-    const pdas = getDepositForBurnPdas(
-        { messageTransmitterProgram, tokenMessengerMinterProgram },
-        usdcPublicKey,
-        destinationDomainId
-    );
-
-    // Create new keypair for event account
-    const messageSentEventAccountKeypair = Keypair.generate();
-
-    console.log("\n\nCalling depositForBurn with parameters:");
-    console.log("amount:", amount);
-    console.log("destinationDomain:", destinationDomainId);
-    console.log("evmRecipientAddress:", evmRecipientAddress);
-
-    // Anchor RPC call
-    const depositForBurnTx = await tokenMessengerMinterProgram.methods
-        .depositForBurn({
-            amount: new anchor.BN(amount),
-            destinationDomain: destinationDomainId,
-            mintRecipient,
-        })
-        .accounts({
-            owner: provider.wallet.publicKey,
-            eventRentPayer: provider.wallet.publicKey,
-            senderAuthorityPda: pdas.authorityPda.publicKey,
-            burnTokenAccount: userTokenAccount,
-            messageTransmitter: pdas.messageTransmitterAccount.publicKey,
-            tokenMessenger: pdas.tokenMessengerAccount.publicKey,
-            remoteTokenMessenger: pdas.remoteTokenMessengerKey.publicKey,
-            tokenMinter: pdas.tokenMinterAccount.publicKey,
-            localToken: pdas.localToken.publicKey,
-            burnTokenMint: usdcPublicKey,
-            messageTransmitterProgram: messageTransmitterProgram.programId,
-            tokenMessengerMinterProgram: tokenMessengerMinterProgram.programId,
-            messageSentEventData: messageSentEventAccountKeypair.publicKey,
-            tokenProgram: spl.TOKEN_PROGRAM_ID,
-        })
-        .signers([messageSentEventAccountKeypair])
-        .rpc();
-
-    console.log("depositForBurn txHash:", depositForBurnTx);
-
-    // Fetch attestation from the Attestation Service
-    const response = await getMessages(depositForBurnTx, irisApiUrl);
-    const { attestation: attestationHex } = response.messages[0];
-    console.log("depositForBurn message info:", response.messages[0]);
-
-    // (Optional) reclaim event account rent
-    const reclaimEventAccountTx = await messageTransmitterProgram.methods
-        .reclaimEventAccount({
-            attestation: Buffer.from(attestationHex.replace("0x", ""), "hex"),
-        })
-        .accounts({
-            payee: provider.wallet.publicKey,
-            messageTransmitter: pdas.messageTransmitterAccount.publicKey,
-            messageSentEventData: messageSentEventAccountKeypair.publicKey,
-        })
-        .rpc();
-
-    console.log("reclaimEventAccount txHash:", reclaimEventAccountTx);
-    console.log("Event account reclaimed. SOL rent refunded.");
-}
 
 /**
  * Helper function to fetch Circle's attestation data for a specific Solana transaction.
@@ -226,10 +119,24 @@ export function findProgramAddress(
 }
 
 export async function findOrCreateUserTokenAccount(
-    solanaSigner: Keypair,
-    tokenMint: PublicKey,
+    params: IBridgeFromSolanaParams
 ): Promise<PublicKey> {
-    console.log(solanaSigner.publicKey.toBase58());
-    console.log(tokenMint.toBase58());
-    throw new Error("findOrCreateUserTokenAccount not implemented");
+    const { solanaSigner, solanaTokenAddress, solanaRpcUrl } = params;
+    const solanaTokenPublicKey = new PublicKey(solanaTokenAddress);
+    const connection = new Connection(solanaRpcUrl);
+
+    try {
+        // Get the associated token account address
+        const tokenAccount = await getAssociatedTokenAddress(
+            solanaTokenPublicKey,
+            solanaSigner.publicKey
+        );
+
+        // Check if the account exists
+        await getAccount(connection, tokenAccount);
+
+        return tokenAccount;
+    } catch (error) {
+        throw new Error("Token account not found");
+    }
 }

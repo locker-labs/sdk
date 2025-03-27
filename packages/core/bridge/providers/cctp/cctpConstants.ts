@@ -1,3 +1,5 @@
+import type { ISolanaNetwork } from "../../types";
+
 /**
  * https://developers.circle.com/stablecoins/supported-domains
  */
@@ -15,9 +17,8 @@ export const CCTP_DOMAIN_IDS: Record<string, number> = {
     unichain: 10,
 };
 
-export type MODE = "devnet" | "mainnet";
 
-export const CIRCLE_CONFIG: Record<MODE, {
+export const CIRCLE_CONFIG: Record<ISolanaNetwork, {
     usdcAddress: string;
     irisApiUrl: string;
 }> = {

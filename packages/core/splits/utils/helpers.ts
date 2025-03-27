@@ -1,4 +1,4 @@
-import { SPLIT_PLUGIN_ADDRESS } from '../def/config';
+import { SPLIT_PLUGIN_ADDRESS } from "../def/splitPluginConfig";
 
 async function isSplitPluginInstalled(extendedAccount: any): Promise<boolean> {
   const installedPlugins = await extendedAccount.getInstalledPlugins({});
@@ -7,6 +7,5 @@ async function isSplitPluginInstalled(extendedAccount: any): Promise<boolean> {
   }
   return true;
 }
-
 
 export { isSplitPluginInstalled };

@@ -12,6 +12,7 @@ export type LockerSplitClient = {
   uninstallSplitPlugin: () => Promise<any>;
   pauseAutomation: (configIndex: number) => Promise<any>;
   split: (configIndex: number) => Promise<any>;
+  deleteSplit: (configIndex: number) => Promise<any>;
   sendUserOperation: (
     target: `0x${string}`,
     data: `0x${string}`,
@@ -90,6 +91,18 @@ export async function createLockerSplitClient(
       }
       const res = await extendedAccount.split({ args: [BigInt(configIndex)] });
       console.log("Split executed with:", res.hash);
+      return res;
+    },
+    async deleteSplit(configIndex: number): Promise<any> {
+      console.log("Deleting split config...");
+      if (!(await isSplitPluginInstalled(extendedAccount))) {
+        console.log("Split plugin not installed.");
+        return null;
+      }
+      const res = await extendedAccount.deleteSplitConfig({
+        args: [BigInt(configIndex)],
+      });
+      console.log("Split config deleted with:", res.hash);
       return res;
     },
     async sendUserOperation(

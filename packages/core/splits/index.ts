@@ -12,6 +12,11 @@ export type LockerSplitClient = {
   uninstallSplitPlugin: () => Promise<any>;
   pauseAutomation: (configIndex: number) => Promise<any>;
   split: (configIndex: number) => Promise<any>;
+  sendUserOperation: (
+    target: `0x${string}`,
+    data: `0x${string}`,
+    value: bigint
+  ) => Promise<any>;
 };
 
 /**
@@ -85,6 +90,22 @@ export async function createLockerSplitClient(
       }
       const res = await extendedAccount.split({ args: [BigInt(configIndex)] });
       console.log("Split executed with:", res.hash);
+      return res;
+    },
+    async sendUserOperation(
+      target: `0x${string}`,
+      data: `0x${string}`,
+      value: bigint
+    ): Promise<any> {
+      console.log("Sending user operation...");
+      const res = await extendedAccount.sendUserOperation({
+        uo: {
+          target,
+          data,
+          value,
+        },
+      });
+      console.log("User operation sent with:", res.hash);
       return res;
     },
   };

@@ -7,7 +7,6 @@ import { encodeAbiParameters, type Address } from "viem";
 import { splitPluginActions } from "./utils/splitsPlugin";
 import { isSplitPluginInstalled } from "./utils/helpers";
 import { SPLIT_PLUGIN_ADDRESS } from "./def/splitPluginConfig";
-import { encode } from "@coral-xyz/anchor/dist/cjs/utils/bytes/hex";
 
 export interface LockerSplitClient extends LockerClient {
   createSplit: (

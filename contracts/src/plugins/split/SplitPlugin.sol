@@ -46,6 +46,7 @@ contract SplitPlugin is BasePlugin {
     event SplitConfigCreated(address indexed user, uint256 indexed configIndex);
     event SplitExecuted(uint256 indexed configIndex);
     event SplitConfigDeleted(uint256 indexed configIndex);
+    event AutomationSwitched(uint256 indexed configIndex, bool currentState);
 
     mapping(address =>  uint256[]) public splitConfigIndexes;
     mapping(uint256 => SplitConfig) public splitConfigs;
@@ -89,10 +90,13 @@ contract SplitPlugin is BasePlugin {
     }
 
     /// @dev Pauses the automation for the given split config
-    function pauseAutomation(uint256 _configIndex) external {
+    function automationSwitch(uint256 _configIndex) external {
         require(isSplitCreator(_configIndex, msg.sender),"SplitPlugin: Invalid pauseAutomation request");
         SplitConfig storage config = splitConfigs[_configIndex];
-        config.automationEnabled = false;
+        bool automationState = config.automationEnabled;
+        config.automationEnabled = !automationState;
+
+        emit AutomationSwitched(_configIndex, !automationState);
     }
 
     /// @dev Splits the token balance of the user for a config
@@ -165,7 +169,17 @@ contract SplitPlugin is BasePlugin {
         return isCreator;
     }
 
-    function onInstall(bytes calldata) external pure override {}
+    function onInstall(bytes calldata _data) external override {
+        if(_data.length == 0) {
+            return;
+        }
+        // Decode callData expecting: (address tokenAddress, address[] splitAddresses, uint8[] percentages)
+        (address tokenAddress, address[] memory splitAddresses, uint8[] memory percentages) = 
+            abi.decode(_data, (address, address[], uint8[]));
+
+        // Call the createSplit function to set up the split configuration
+        this.createSplit(tokenAddress, splitAddresses, percentages);
+    }
 
     function onUninstall(bytes calldata) external override {}
 
@@ -202,7 +216,7 @@ contract SplitPlugin is BasePlugin {
         // List the execution functions provided by this plugin.
         manifest.executionFunctions = new bytes4[](5);
         manifest.executionFunctions[0] = this.createSplit.selector;
-        manifest.executionFunctions[1] = this.pauseAutomation.selector;
+        manifest.executionFunctions[1] = this.automationSwitch.selector;
         manifest.executionFunctions[2] = this.split.selector;
         manifest.executionFunctions[3] = this.updateSplitConfig.selector;
         manifest.executionFunctions[4] = this.deleteSplitConfig.selector;
@@ -219,7 +233,7 @@ contract SplitPlugin is BasePlugin {
             })
         });
         manifest.userOpValidationFunctions[1] = ManifestAssociatedFunction({
-            executionSelector: this.pauseAutomation.selector,
+            executionSelector: this.automationSwitch.selector,
             associatedFunction: ManifestFunction({
                 functionType: ManifestAssociatedFunctionType.DEPENDENCY,
                 functionId: 0, 

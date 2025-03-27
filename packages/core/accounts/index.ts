@@ -1,6 +1,7 @@
 import { LocalAccountSigner } from "@aa-sdk/core";
 import { alchemy, baseSepolia } from "@account-kit/infra";
 import { createModularAccountAlchemyClient } from "@account-kit/smart-contracts";
+import { type Address } from "viem";
 import * as dotenv from "dotenv";
 dotenv.config();
 
@@ -49,15 +50,11 @@ export interface LockerClient {
    * @param plugin - An object containing additional functions.
    * @returns The extended client.
    */
-  address: () => `0x${string}`;
+  address: () => Address;
   extend: (pluginActions: any) => any;
-  installPlugin: (plugin: `0x${string}`) => Promise<any>;
-  uninstallPlugin: (plugin: `0x${string}`) => Promise<any>;
-  sendUserOps: (
-    to: `0x${string}`,
-    data: `0x${string}`,
-    value: bigint
-  ) => Promise<any>;
+  installPlugin: (plugin: Address) => Promise<any>;
+  uninstallPlugin: (plugin: Address) => Promise<any>;
+  sendUserOps: (to: Address, data: Address, value: bigint) => Promise<any>;
 }
 
 /**

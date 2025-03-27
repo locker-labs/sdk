@@ -3,60 +3,39 @@ export const SplitPluginAbi = [
     type: "function",
     name: "AUTHOR",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "string",
-        internalType: "string",
-      },
-    ],
+    outputs: [{ name: "", type: "string", internalType: "string" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "NAME",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "string",
-        internalType: "string",
-      },
-    ],
+    outputs: [{ name: "", type: "string", internalType: "string" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "VERSION",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "string",
-        internalType: "string",
-      },
-    ],
+    outputs: [{ name: "", type: "string", internalType: "string" }],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "automationSwitch",
+    inputs: [
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "createSplit",
     inputs: [
-      {
-        name: "_tokenAddress",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "_splitAddresses",
-        type: "address[]",
-        internalType: "address[]",
-      },
-      {
-        name: "_percentages",
-        type: "uint8[]",
-        internalType: "uint8[]",
-      },
+      { name: "_tokenAddress", type: "address", internalType: "address" },
+      { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
+      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -65,11 +44,7 @@ export const SplitPluginAbi = [
     type: "function",
     name: "deleteSplitConfig",
     inputs: [
-      {
-        name: "_configIndex",
-        type: "uint256",
-        internalType: "uint256",
-      },
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -78,62 +53,23 @@ export const SplitPluginAbi = [
     type: "function",
     name: "isSplitCreator",
     inputs: [
-      {
-        name: "_configIndex",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "_splitCreator",
-        type: "address",
-        internalType: "address",
-      },
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+      { name: "_splitCreator", type: "address", internalType: "address" },
     ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "onInstall",
-    inputs: [
-      {
-        name: "",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
-    outputs: [],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "onUninstall",
-    inputs: [
-      {
-        name: "",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
+    inputs: [{ name: "_data", type: "bytes", internalType: "bytes" }],
     outputs: [],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
-    name: "pauseAutomation",
-    inputs: [
-      {
-        name: "_configIndex",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    name: "onUninstall",
+    inputs: [{ name: "", type: "bytes", internalType: "bytes" }],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -147,11 +83,7 @@ export const SplitPluginAbi = [
         type: "tuple",
         internalType: "struct PluginManifest",
         components: [
-          {
-            name: "interfaceIds",
-            type: "bytes4[]",
-            internalType: "bytes4[]",
-          },
+          { name: "interfaceIds", type: "bytes4[]", internalType: "bytes4[]" },
           {
             name: "dependencyInterfaceIds",
             type: "bytes4[]",
@@ -172,11 +104,7 @@ export const SplitPluginAbi = [
             type: "bool",
             internalType: "bool",
           },
-          {
-            name: "canSpendNativeToken",
-            type: "bool",
-            internalType: "bool",
-          },
+          { name: "canSpendNativeToken", type: "bool", internalType: "bool" },
           {
             name: "permittedExternalCalls",
             type: "tuple[]",
@@ -187,16 +115,8 @@ export const SplitPluginAbi = [
                 type: "address",
                 internalType: "address",
               },
-              {
-                name: "permitAnySelector",
-                type: "bool",
-                internalType: "bool",
-              },
-              {
-                name: "selectors",
-                type: "bytes4[]",
-                internalType: "bytes4[]",
-              },
+              { name: "permitAnySelector", type: "bool", internalType: "bool" },
+              { name: "selectors", type: "bytes4[]", internalType: "bytes4[]" },
             ],
           },
           {
@@ -219,11 +139,7 @@ export const SplitPluginAbi = [
                     type: "uint8",
                     internalType: "enum ManifestAssociatedFunctionType",
                   },
-                  {
-                    name: "functionId",
-                    type: "uint8",
-                    internalType: "uint8",
-                  },
+                  { name: "functionId", type: "uint8", internalType: "uint8" },
                   {
                     name: "dependencyIndex",
                     type: "uint256",
@@ -253,11 +169,7 @@ export const SplitPluginAbi = [
                     type: "uint8",
                     internalType: "enum ManifestAssociatedFunctionType",
                   },
-                  {
-                    name: "functionId",
-                    type: "uint8",
-                    internalType: "uint8",
-                  },
+                  { name: "functionId", type: "uint8", internalType: "uint8" },
                   {
                     name: "dependencyIndex",
                     type: "uint256",
@@ -287,11 +199,7 @@ export const SplitPluginAbi = [
                     type: "uint8",
                     internalType: "enum ManifestAssociatedFunctionType",
                   },
-                  {
-                    name: "functionId",
-                    type: "uint8",
-                    internalType: "uint8",
-                  },
+                  { name: "functionId", type: "uint8", internalType: "uint8" },
                   {
                     name: "dependencyIndex",
                     type: "uint256",
@@ -321,11 +229,7 @@ export const SplitPluginAbi = [
                     type: "uint8",
                     internalType: "enum ManifestAssociatedFunctionType",
                   },
-                  {
-                    name: "functionId",
-                    type: "uint8",
-                    internalType: "uint8",
-                  },
+                  { name: "functionId", type: "uint8", internalType: "uint8" },
                   {
                     name: "dependencyIndex",
                     type: "uint256",
@@ -355,11 +259,7 @@ export const SplitPluginAbi = [
                     type: "uint8",
                     internalType: "enum ManifestAssociatedFunctionType",
                   },
-                  {
-                    name: "functionId",
-                    type: "uint8",
-                    internalType: "uint8",
-                  },
+                  { name: "functionId", type: "uint8", internalType: "uint8" },
                   {
                     name: "dependencyIndex",
                     type: "uint256",
@@ -377,11 +277,7 @@ export const SplitPluginAbi = [
                     type: "uint8",
                     internalType: "enum ManifestAssociatedFunctionType",
                   },
-                  {
-                    name: "functionId",
-                    type: "uint8",
-                    internalType: "uint8",
-                  },
+                  { name: "functionId", type: "uint8", internalType: "uint8" },
                   {
                     name: "dependencyIndex",
                     type: "uint256",
@@ -406,21 +302,9 @@ export const SplitPluginAbi = [
         type: "tuple",
         internalType: "struct PluginMetadata",
         components: [
-          {
-            name: "name",
-            type: "string",
-            internalType: "string",
-          },
-          {
-            name: "version",
-            type: "string",
-            internalType: "string",
-          },
-          {
-            name: "author",
-            type: "string",
-            internalType: "string",
-          },
+          { name: "name", type: "string", internalType: "string" },
+          { name: "version", type: "string", internalType: "string" },
+          { name: "author", type: "string", internalType: "string" },
           {
             name: "permissionDescriptors",
             type: "tuple[]",
@@ -447,16 +331,8 @@ export const SplitPluginAbi = [
     type: "function",
     name: "postExecutionHook",
     inputs: [
-      {
-        name: "",
-        type: "uint8",
-        internalType: "uint8",
-      },
-      {
-        name: "",
-        type: "bytes",
-        internalType: "bytes",
-      },
+      { name: "", type: "uint8", internalType: "uint8" },
+      { name: "", type: "bytes", internalType: "bytes" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -465,60 +341,22 @@ export const SplitPluginAbi = [
     type: "function",
     name: "preExecutionHook",
     inputs: [
-      {
-        name: "functionId",
-        type: "uint8",
-        internalType: "uint8",
-      },
-      {
-        name: "sender",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "value",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "data",
-        type: "bytes",
-        internalType: "bytes",
-      },
+      { name: "functionId", type: "uint8", internalType: "uint8" },
+      { name: "sender", type: "address", internalType: "address" },
+      { name: "value", type: "uint256", internalType: "uint256" },
+      { name: "data", type: "bytes", internalType: "bytes" },
     ],
-    outputs: [
-      {
-        name: "",
-        type: "bytes",
-        internalType: "bytes",
-      },
-    ],
+    outputs: [{ name: "", type: "bytes", internalType: "bytes" }],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "preRuntimeValidationHook",
     inputs: [
-      {
-        name: "functionId",
-        type: "uint8",
-        internalType: "uint8",
-      },
-      {
-        name: "sender",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "value",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "data",
-        type: "bytes",
-        internalType: "bytes",
-      },
+      { name: "functionId", type: "uint8", internalType: "uint8" },
+      { name: "sender", type: "address", internalType: "address" },
+      { name: "value", type: "uint256", internalType: "uint256" },
+      { name: "data", type: "bytes", internalType: "bytes" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -527,41 +365,17 @@ export const SplitPluginAbi = [
     type: "function",
     name: "preUserOpValidationHook",
     inputs: [
-      {
-        name: "functionId",
-        type: "uint8",
-        internalType: "uint8",
-      },
+      { name: "functionId", type: "uint8", internalType: "uint8" },
       {
         name: "userOp",
         type: "tuple",
         internalType: "struct UserOperation",
         components: [
-          {
-            name: "sender",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "nonce",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "initCode",
-            type: "bytes",
-            internalType: "bytes",
-          },
-          {
-            name: "callData",
-            type: "bytes",
-            internalType: "bytes",
-          },
-          {
-            name: "callGasLimit",
-            type: "uint256",
-            internalType: "uint256",
-          },
+          { name: "sender", type: "address", internalType: "address" },
+          { name: "nonce", type: "uint256", internalType: "uint256" },
+          { name: "initCode", type: "bytes", internalType: "bytes" },
+          { name: "callData", type: "bytes", internalType: "bytes" },
+          { name: "callGasLimit", type: "uint256", internalType: "uint256" },
           {
             name: "verificationGasLimit",
             type: "uint256",
@@ -572,67 +386,29 @@ export const SplitPluginAbi = [
             type: "uint256",
             internalType: "uint256",
           },
-          {
-            name: "maxFeePerGas",
-            type: "uint256",
-            internalType: "uint256",
-          },
+          { name: "maxFeePerGas", type: "uint256", internalType: "uint256" },
           {
             name: "maxPriorityFeePerGas",
             type: "uint256",
             internalType: "uint256",
           },
-          {
-            name: "paymasterAndData",
-            type: "bytes",
-            internalType: "bytes",
-          },
-          {
-            name: "signature",
-            type: "bytes",
-            internalType: "bytes",
-          },
+          { name: "paymasterAndData", type: "bytes", internalType: "bytes" },
+          { name: "signature", type: "bytes", internalType: "bytes" },
         ],
       },
-      {
-        name: "userOpHash",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
+      { name: "userOpHash", type: "bytes32", internalType: "bytes32" },
     ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
     name: "runtimeValidationFunction",
     inputs: [
-      {
-        name: "functionId",
-        type: "uint8",
-        internalType: "uint8",
-      },
-      {
-        name: "sender",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "value",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "data",
-        type: "bytes",
-        internalType: "bytes",
-      },
+      { name: "functionId", type: "uint8", internalType: "uint8" },
+      { name: "sender", type: "address", internalType: "address" },
+      { name: "value", type: "uint256", internalType: "uint256" },
+      { name: "data", type: "bytes", internalType: "bytes" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -641,11 +417,7 @@ export const SplitPluginAbi = [
     type: "function",
     name: "split",
     inputs: [
-      {
-        name: "_configIndex",
-        type: "uint256",
-        internalType: "uint256",
-      },
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -654,101 +426,43 @@ export const SplitPluginAbi = [
     type: "function",
     name: "splitConfigCount",
     inputs: [],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "splitConfigIndexes",
     inputs: [
-      {
-        name: "",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
+      { name: "", type: "address", internalType: "address" },
+      { name: "", type: "uint256", internalType: "uint256" },
     ],
-    outputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "splitConfigs",
-    inputs: [
-      {
-        name: "",
-        type: "uint256",
-        internalType: "uint256",
-      },
-    ],
+    inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     outputs: [
-      {
-        name: "tokenAddress",
-        type: "address",
-        internalType: "address",
-      },
-      {
-        name: "automationEnabled",
-        type: "bool",
-        internalType: "bool",
-      },
+      { name: "tokenAddress", type: "address", internalType: "address" },
+      { name: "automationEnabled", type: "bool", internalType: "bool" },
     ],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "supportsInterface",
-    inputs: [
-      {
-        name: "interfaceId",
-        type: "bytes4",
-        internalType: "bytes4",
-      },
-    ],
-    outputs: [
-      {
-        name: "",
-        type: "bool",
-        internalType: "bool",
-      },
-    ],
+    inputs: [{ name: "interfaceId", type: "bytes4", internalType: "bytes4" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
   },
   {
     type: "function",
     name: "updateSplitConfig",
     inputs: [
-      {
-        name: "_configIndex",
-        type: "uint256",
-        internalType: "uint256",
-      },
-      {
-        name: "_splitAddresses",
-        type: "address[]",
-        internalType: "address[]",
-      },
-      {
-        name: "_percentages",
-        type: "uint8[]",
-        internalType: "uint8[]",
-      },
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+      { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
+      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -757,41 +471,17 @@ export const SplitPluginAbi = [
     type: "function",
     name: "userOpValidationFunction",
     inputs: [
-      {
-        name: "",
-        type: "uint8",
-        internalType: "uint8",
-      },
+      { name: "", type: "uint8", internalType: "uint8" },
       {
         name: "",
         type: "tuple",
         internalType: "struct UserOperation",
         components: [
-          {
-            name: "sender",
-            type: "address",
-            internalType: "address",
-          },
-          {
-            name: "nonce",
-            type: "uint256",
-            internalType: "uint256",
-          },
-          {
-            name: "initCode",
-            type: "bytes",
-            internalType: "bytes",
-          },
-          {
-            name: "callData",
-            type: "bytes",
-            internalType: "bytes",
-          },
-          {
-            name: "callGasLimit",
-            type: "uint256",
-            internalType: "uint256",
-          },
+          { name: "sender", type: "address", internalType: "address" },
+          { name: "nonce", type: "uint256", internalType: "uint256" },
+          { name: "initCode", type: "bytes", internalType: "bytes" },
+          { name: "callData", type: "bytes", internalType: "bytes" },
+          { name: "callGasLimit", type: "uint256", internalType: "uint256" },
           {
             name: "verificationGasLimit",
             type: "uint256",
@@ -802,53 +492,45 @@ export const SplitPluginAbi = [
             type: "uint256",
             internalType: "uint256",
           },
-          {
-            name: "maxFeePerGas",
-            type: "uint256",
-            internalType: "uint256",
-          },
+          { name: "maxFeePerGas", type: "uint256", internalType: "uint256" },
           {
             name: "maxPriorityFeePerGas",
             type: "uint256",
             internalType: "uint256",
           },
-          {
-            name: "paymasterAndData",
-            type: "bytes",
-            internalType: "bytes",
-          },
-          {
-            name: "signature",
-            type: "bytes",
-            internalType: "bytes",
-          },
+          { name: "paymasterAndData", type: "bytes", internalType: "bytes" },
+          { name: "signature", type: "bytes", internalType: "bytes" },
         ],
       },
-      {
-        name: "",
-        type: "bytes32",
-        internalType: "bytes32",
-      },
+      { name: "", type: "bytes32", internalType: "bytes32" },
     ],
-    outputs: [
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "pure",
+  },
+  {
+    type: "event",
+    name: "AutomationSwitched",
+    inputs: [
       {
-        name: "",
+        name: "configIndex",
         type: "uint256",
+        indexed: true,
         internalType: "uint256",
       },
+      {
+        name: "currentState",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
     ],
-    stateMutability: "pure",
+    anonymous: false,
   },
   {
     type: "event",
     name: "SplitConfigCreated",
     inputs: [
-      {
-        name: "user",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
+      { name: "user", type: "address", indexed: true, internalType: "address" },
       {
         name: "configIndex",
         type: "uint256",
@@ -884,46 +566,20 @@ export const SplitPluginAbi = [
     ],
     anonymous: false,
   },
-  {
-    type: "error",
-    name: "AlreadyInitialized",
-    inputs: [],
-  },
-  {
-    type: "error",
-    name: "InvalidAction",
-    inputs: [],
-  },
+  { type: "error", name: "AlreadyInitialized", inputs: [] },
+  { type: "error", name: "InvalidAction", inputs: [] },
   {
     type: "error",
     name: "NotContractCaller",
-    inputs: [
-      {
-        name: "caller",
-        type: "address",
-        internalType: "address",
-      },
-    ],
+    inputs: [{ name: "caller", type: "address", internalType: "address" }],
   },
   {
     type: "error",
     name: "NotImplemented",
     inputs: [
-      {
-        name: "selector",
-        type: "bytes4",
-        internalType: "bytes4",
-      },
-      {
-        name: "functionId",
-        type: "uint8",
-        internalType: "uint8",
-      },
+      { name: "selector", type: "bytes4", internalType: "bytes4" },
+      { name: "functionId", type: "uint8", internalType: "uint8" },
     ],
   },
-  {
-    type: "error",
-    name: "NotInitialized",
-    inputs: [],
-  },
+  { type: "error", name: "NotInitialized", inputs: [] },
 ] as const;

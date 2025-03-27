@@ -3,17 +3,23 @@ import {
   type LockerClientParams,
   type LockerClient,
 } from "accounts";
+import { encodeAbiParameters, type Address } from "viem";
 import { splitPluginActions } from "./utils/splitsPlugin";
 import { isSplitPluginInstalled } from "./utils/helpers";
 import { SPLIT_PLUGIN_ADDRESS } from "./def/splitPluginConfig";
+import { encode } from "@coral-xyz/anchor/dist/cjs/utils/bytes/hex";
 
 export interface LockerSplitClient extends LockerClient {
   createSplit: (
-    tokenAddress: string,
+    tokenAddress: Address,
     percentage: number[],
-    receiverAddresses: string[]
+    receiverAddresses: Address[]
   ) => Promise<any>;
-  installSplitPlugin: () => Promise<any>;
+  installSplitPlugin: (
+    tokenAddress: Address,
+    percentage: number[],
+    receiverAddresses: Address[]
+  ) => Promise<any>;
   uninstallSplitPlugin: () => Promise<any>;
   pauseAutomation: (configIndex: number) => Promise<any>;
   split: (configIndex: number) => Promise<any>;
@@ -49,12 +55,22 @@ export async function createLockerSplitClient(
       });
       return res;
     },
-    async installSplitPlugin(): Promise<any> {
+    async installSplitPlugin(
+      tokenAddress: Address,
+      percentage: number[],
+      receiverAddresses: Address[]
+    ): Promise<any> {
       if (await isSplitPluginInstalled(splitsLockerClient)) {
         console.log("Split plugin already installed.");
         return null;
       }
-      const res = await splitsLockerClient.installSplitPlugin({ args: [] });
+      const callData = encodeAbiParameters(
+        [{ type: "address" }, { type: "address[]" }, { type: "uint8[]" }],
+        [tokenAddress, receiverAddresses, percentage]
+      );
+      const res = await splitsLockerClient.installSplitPlugin({
+        args: [callData],
+      });
       return res;
     },
     async uninstallSplitPlugin(): Promise<any> {

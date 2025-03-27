@@ -1,11 +1,12 @@
 import type { PluginConfig } from "@account-kit/plugingen";
-import {  baseSepolia } from "viem/chains";
+import { type Address } from "viem";
+import { baseSepolia } from "viem/chains";
 import { MultiOwnerPluginGenConfig } from "./multiPlugin";
 import { SplitPluginAbi } from "./splitPluginAbi";
 
 // sepolia 0xFEd11a0C1c292F2823757925122222bb28b13443
 export const SPLIT_PLUGIN_ADDRESS =
-  "0x4d1B257678247A2Bc84A4B8A8a77e16D26484CFe" as `0x${string}`;
+  "0x7AA0c9376178EBC081eAd5C49801C86Ce834D629" as Address;
 
 export const SplitPluginGenConfig: PluginConfig = {
   name: "SplitPlugin",

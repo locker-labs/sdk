@@ -52,20 +52,20 @@ type ExecutionActions<
     > &
       UserOperationOverridesParameter<TEntryPointVersion> &
       GetAccountParameter<TAccount> &
-      GetContextParameter<TContext>,
+      GetContextParameter<TContext>
   ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
 
-  pauseAutomation: (
+  automationSwitch: (
     args: Pick<
       EncodeFunctionDataParameters<
         typeof SplitPluginExecutionFunctionAbi,
-        "pauseAutomation"
+        "automationSwitch"
       >,
       "args"
     > &
       UserOperationOverridesParameter<TEntryPointVersion> &
       GetAccountParameter<TAccount> &
-      GetContextParameter<TContext>,
+      GetContextParameter<TContext>
   ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
 
   split: (
@@ -78,7 +78,7 @@ type ExecutionActions<
     > &
       UserOperationOverridesParameter<TEntryPointVersion> &
       GetAccountParameter<TAccount> &
-      GetContextParameter<TContext>,
+      GetContextParameter<TContext>
   ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
 
   updateSplitConfig: (
@@ -91,7 +91,7 @@ type ExecutionActions<
     > &
       UserOperationOverridesParameter<TEntryPointVersion> &
       GetAccountParameter<TAccount> &
-      GetContextParameter<TContext>,
+      GetContextParameter<TContext>
   ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
 
   deleteSplitConfig: (
@@ -104,7 +104,7 @@ type ExecutionActions<
     > &
       UserOperationOverridesParameter<TEntryPointVersion> &
       GetAccountParameter<TAccount> &
-      GetContextParameter<TContext>,
+      GetContextParameter<TContext>
   ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
 };
 
@@ -130,7 +130,7 @@ type ManagementActions<
     args: UserOperationOverridesParameter<TEntryPointVersion> &
       InstallSplitPluginParams &
       GetAccountParameter<TAccount> &
-      GetContextParameter<TContext>,
+      GetContextParameter<TContext>
   ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
 };
 
@@ -142,17 +142,17 @@ type ReadAndEncodeActions = {
         "createSplit"
       >,
       "args"
-    >,
+    >
   ) => Hex;
 
-  encodePauseAutomation: (
+  encodeAutomationSwitch: (
     args: Pick<
       EncodeFunctionDataParameters<
         typeof SplitPluginExecutionFunctionAbi,
-        "pauseAutomation"
+        "automationSwitch"
       >,
       "args"
-    >,
+    >
   ) => Hex;
 
   encodeSplit: (
@@ -162,7 +162,7 @@ type ReadAndEncodeActions = {
         "split"
       >,
       "args"
-    >,
+    >
   ) => Hex;
 
   encodeUpdateSplitConfig: (
@@ -172,7 +172,7 @@ type ReadAndEncodeActions = {
         "updateSplitConfig"
       >,
       "args"
-    >,
+    >
   ) => Hex;
 
   encodeDeleteSplitConfig: (
@@ -182,7 +182,7 @@ type ReadAndEncodeActions = {
         "deleteSplitConfig"
       >,
       "args"
-    >,
+    >
   ) => Hex;
 };
 
@@ -198,7 +198,7 @@ export type SplitPluginActions<
   ReadAndEncodeActions;
 
 const addresses = {
-  84532: "0x4d1B257678247A2Bc84A4B8A8a77e16D26484CFe" as Address,
+  84532: "0x7AA0c9376178EBC081eAd5C49801C86Ce834D629" as Address,
 } as Record<number, Address>;
 
 export const SplitPlugin: Plugin<typeof SplitPluginAbi> = {
@@ -209,7 +209,7 @@ export const SplitPlugin: Plugin<typeof SplitPluginAbi> = {
   },
   getContract: <C extends Client>(
     client: C,
-    address?: Address,
+    address?: Address
   ): GetContractReturnType<typeof SplitPluginAbi, PublicClient, Address> => {
     if (!client.chain) throw new ChainNotFoundError();
 
@@ -231,7 +231,7 @@ export const splitPluginActions: <
     | UserOperationContext
     | undefined,
 >(
-  client: Client<TTransport, TChain, TAccount>,
+  client: Client<TTransport, TChain, TAccount>
 ) => SplitPluginActions<TAccount, TContext> = (client) => ({
   createSplit({ args, overrides, context, account = client.account }) {
     if (!account) {
@@ -241,7 +241,7 @@ export const splitPluginActions: <
       throw new IncompatibleClientError(
         "SmartAccountClient",
         "createSplit",
-        client,
+        client
       );
     }
 
@@ -253,21 +253,21 @@ export const splitPluginActions: <
 
     return client.sendUserOperation({ uo, overrides, account, context });
   },
-  pauseAutomation({ args, overrides, context, account = client.account }) {
+  automationSwitch({ args, overrides, context, account = client.account }) {
     if (!account) {
       throw new AccountNotFoundError();
     }
     if (!isSmartAccountClient(client)) {
       throw new IncompatibleClientError(
         "SmartAccountClient",
-        "pauseAutomation",
-        client,
+        "automationSwitch",
+        client
       );
     }
 
     const uo = encodeFunctionData({
       abi: SplitPluginExecutionFunctionAbi,
-      functionName: "pauseAutomation",
+      functionName: "automationSwitch",
       args,
     });
 
@@ -297,7 +297,7 @@ export const splitPluginActions: <
       throw new IncompatibleClientError(
         "SmartAccountClient",
         "updateSplitConfig",
-        client,
+        client
       );
     }
 
@@ -317,7 +317,7 @@ export const splitPluginActions: <
       throw new IncompatibleClientError(
         "SmartAccountClient",
         "deleteSplitConfig",
-        client,
+        client
       );
     }
 
@@ -343,7 +343,7 @@ export const splitPluginActions: <
       throw new IncompatibleClientError(
         "SmartAccountClient",
         "installSplitPlugin",
-        client,
+        client
       );
     }
 
@@ -357,7 +357,7 @@ export const splitPluginActions: <
         const pluginAddress = MultiOwnerPlugin.meta.addresses[chain.id];
         if (!pluginAddress) {
           throw new Error(
-            "missing MultiOwnerPlugin address for chain " + chain.name,
+            "missing MultiOwnerPlugin address for chain " + chain.name
           );
         }
 
@@ -368,7 +368,7 @@ export const splitPluginActions: <
         const pluginAddress = MultiOwnerPlugin.meta.addresses[chain.id];
         if (!pluginAddress) {
           throw new Error(
-            "missing MultiOwnerPlugin address for chain " + chain.name,
+            "missing MultiOwnerPlugin address for chain " + chain.name
           );
         }
 
@@ -399,10 +399,10 @@ export const splitPluginActions: <
       args,
     });
   },
-  encodePauseAutomation({ args }) {
+  encodeAutomationSwitch({ args }) {
     return encodeFunctionData({
       abi: SplitPluginExecutionFunctionAbi,
-      functionName: "pauseAutomation",
+      functionName: "automationSwitch",
       args,
     });
   },
@@ -443,7 +443,7 @@ export const SplitPluginExecutionFunctionAbi = [
   },
   {
     type: "function",
-    name: "pauseAutomation",
+    name: "automationSwitch",
     inputs: [
       { name: "_configIndex", type: "uint256", internalType: "uint256" },
     ],
@@ -505,6 +505,15 @@ export const SplitPluginAbi = [
   },
   {
     type: "function",
+    name: "automationSwitch",
+    inputs: [
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "createSplit",
     inputs: [
       { name: "_tokenAddress", type: "address", internalType: "address" },
@@ -536,23 +545,14 @@ export const SplitPluginAbi = [
   {
     type: "function",
     name: "onInstall",
-    inputs: [{ name: "", type: "bytes", internalType: "bytes" }],
-    outputs: [],
-    stateMutability: "pure",
-  },
-  {
-    type: "function",
-    name: "onUninstall",
-    inputs: [{ name: "", type: "bytes", internalType: "bytes" }],
+    inputs: [{ name: "_data", type: "bytes", internalType: "bytes" }],
     outputs: [],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
-    name: "pauseAutomation",
-    inputs: [
-      { name: "_configIndex", type: "uint256", internalType: "uint256" },
-    ],
+    name: "onUninstall",
+    inputs: [{ name: "", type: "bytes", internalType: "bytes" }],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -992,6 +992,25 @@ export const SplitPluginAbi = [
   },
   {
     type: "event",
+    name: "AutomationSwitched",
+    inputs: [
+      {
+        name: "configIndex",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "currentState",
+        type: "bool",
+        indexed: false,
+        internalType: "bool",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "SplitConfigCreated",
     inputs: [
       { name: "user", type: "address", indexed: true, internalType: "address" },
@@ -1047,3 +1066,4 @@ export const SplitPluginAbi = [
   },
   { type: "error", name: "NotInitialized", inputs: [] },
 ] as const;
+

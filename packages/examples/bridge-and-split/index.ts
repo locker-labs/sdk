@@ -48,15 +48,15 @@ const solanaSigner = Keypair.fromSecretKey(solanaPrivateKeyUint8Array);
 
 console.log(
   "About to bridge from Solana to " +
-    recipientChain +
-    ": " +
-    solanaSigner.publicKey.toBase58() +
-    " -> " +
-    recipientAddress
+  recipientChain +
+  ": " +
+  solanaSigner.publicKey.toBase58() +
+  " -> " +
+  recipientAddress
 );
 
-// Create a locker splits client.
-const splitsClient = await createLockerSplitClient({
+// Create a locker split client.
+const splitClient = await createLockerSplitClient({
   apiKey: process.env.LOCKER_API_KEY as string,
   chain: baseSepolia,
   signer: LocalAccountSigner.privateKeyToAccountSigner(
@@ -64,9 +64,9 @@ const splitsClient = await createLockerSplitClient({
   ),
 });
 
-const isSplitsPluginInstalled = await splitsClient.isSplitsPluginInstalled();
-if (!isSplitsPluginInstalled) {
-  const res = await splitsClient.installSplitPlugin(
+const isSplitPluginInstalled = await splitClient.isSplitPluginInstalled();
+if (!isSplitPluginInstalled) {
+  const res = await splitClient.installSplitPlugin(
     CIRCLE_CONFIG[baseSepolia].usdcAddress,
     splitPercentages,
     splitRecipients
@@ -85,7 +85,7 @@ const params = {
   solanaRpcUrl,
 };
 
-// TODO: Use splitsClient to execute bridging
+// TODO: Use splitClient to execute bridging
 
 const response: IBridgeFromSolanaResponse = await bridgeTokenFromSolana(params) as ICctpBridgeFromSolanaResponse
 console.log("Bridge tx submitted. Next step is to withdraw the funds on the recipient chain.")

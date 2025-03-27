@@ -17,13 +17,13 @@ import {IERC20} from "forge-std/interfaces/IERC20.sol";
 import {UserOperation} from "@modular-account/interfaces/erc4337/UserOperation.sol";
 import {SIG_VALIDATION_PASSED} from "@modular-account/libraries/Constants.sol";
 
-/// @title Savings Plugin
+/// @title Split Plugin
 /// @author Locker
 /// @notice This plugin lets users automatically split tokens on any executoin.
 contract SplitPlugin is BasePlugin {
-    string public constant NAME = "Locker Split Plugin";
-    string public constant VERSION = "1.0.0";
-    string public constant AUTHOR = "Locker Team";
+    string public constant NAME = "Split Plugin";
+    string public constant VERSION = "0.0.1";
+    string public constant AUTHOR = "Locker";
 
     // Dependency indices for using the MultiOwner plugin for validation.
     uint256 internal constant _MANIFEST_DEPENDENCY_INDEX_OWNER_RUNTIME_VALIDATION = 0;
@@ -55,9 +55,12 @@ contract SplitPlugin is BasePlugin {
     {
         require(_splitAddresses.length > 0, "SplitPlugin: No split addresses provided");
         require(_splitAddresses.length < MAX_TOKEN_CONFIGS, "SplitPlugin: Split addresses limit exceeded");
-        require(_splitAddresses.length == _percentages.length, "SplitPlugin: Invalid split configuration");
+        require(
+            _splitAddresses.length == _percentages.length,
+            "SplitPlugin: Number of split addresses and percentages must be the same"
+        );
         uint256[] storage userIndexes = splitConfigIndexes[msg.sender];
-        require(userIndexes.length < MAX_SPLIT_RECIPIENTS, "SplitPlugin: Split limit reached");
+        require(userIndexes.length < MAX_SPLIT_RECIPIENTS, "SplitPlugin: Number of split addresses limit reached");
         for (uint256 i = 0; i < userIndexes.length; i++) {
             if (splitConfigs[userIndexes[i]].tokenAddress == _tokenAddress) {
                 revert("SplitPlugin: Config for token already exists");
@@ -68,7 +71,7 @@ contract SplitPlugin is BasePlugin {
         for (uint8 i = 0; i < _percentages.length; i++) {
             totalPercentage += _percentages[i];
         }
-        require(totalPercentage == 100, "SplitPlugin: Invalid percentages.");
+        require(totalPercentage == 100, "SplitPlugin: Percentages must add up to 100");
         uint256 currentSplitConfigIndex = splitConfigCount;
         splitConfigCount++;
         SplitConfig memory config = SplitConfig(_tokenAddress, _splitAddresses, _percentages, true);
@@ -81,7 +84,7 @@ contract SplitPlugin is BasePlugin {
 
     /// @dev Pauses the automation for the given split config
     function toggleIsSplitEnabled(uint256 _configIndex) external {
-        require(isSplitCreator(_configIndex, msg.sender), "SplitPlugin: Invalid pauseAutomation request");
+        require(isSplitCreator(_configIndex, msg.sender), "SplitPlugin: Only the creator can toggle the automation");
         SplitConfig storage config = splitConfigs[_configIndex];
         bool automationState = config.isSplitEnabled;
         config.isSplitEnabled = !automationState;
@@ -116,14 +119,17 @@ contract SplitPlugin is BasePlugin {
     function updateSplitConfig(uint256 _configIndex, address[] memory _splitAddresses, uint8[] memory _percentages)
         external
     {
-        require(isSplitCreator(_configIndex, msg.sender), "SplitPlugin: Invalid pauseAutomation request");
+        require(isSplitCreator(_configIndex, msg.sender), "SplitPlugin: Only the creator can update the split config");
 
         uint64 totalPercentage = 0;
         for (uint8 i = 0; i < _percentages.length; i++) {
             totalPercentage += _percentages[i];
         }
-        require(totalPercentage == 100, "SplitPlugin: Invalid percentages.");
-        require(_splitAddresses.length == _percentages.length, "SplitPlugin: Invalid split configuration");
+        require(totalPercentage == 100, "SplitPlugin: Percentages must add up to 100");
+        require(
+            _splitAddresses.length == _percentages.length,
+            "SplitPlugin: Number of split addresses and percentages must be the same"
+        );
 
         SplitConfig storage config = splitConfigs[_configIndex];
         config.splitAddresses = _splitAddresses;

@@ -19,6 +19,7 @@ export interface LockerSplitClient extends LockerClient {
     percentage: number[],
     receiverAddresses: Address[]
   ) => Promise<any>;
+  isSplitsPluginInstalled: () => Promise<boolean>;
   uninstallSplitPlugin: () => Promise<any>;
   pauseAutomation: (configIndex: number) => Promise<any>;
   split: (configIndex: number) => Promise<any>;
@@ -71,6 +72,9 @@ export async function createLockerSplitClient(
         args: [callData],
       });
       return res;
+    },
+    async isSplitsPluginInstalled(): Promise<boolean> {
+      return await isSplitPluginInstalled(splitsLockerClient);
     },
     async uninstallSplitPlugin(): Promise<any> {
       if (!(await isSplitPluginInstalled(splitsLockerClient))) {

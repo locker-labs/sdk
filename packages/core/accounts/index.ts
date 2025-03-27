@@ -51,6 +51,7 @@ export interface LockerClient {
    * @returns The extended client.
    */
   address: () => Address;
+  isPluginInstalled: (plugin: Address) => Promise<boolean>;
   extend: (pluginActions: any) => any;
   installPlugin: (plugin: Address) => Promise<any>;
   uninstallPlugin: (plugin: Address) => Promise<any>;
@@ -83,6 +84,13 @@ export async function createLockerClient(
 
   const lockerClient: LockerClient = {
     address: () => baseClient.getAddress(),
+    isPluginInstalled: async (plugin) => {
+      const installedPlugins = await baseClient.getInstalledPlugins({});
+      if (!installedPlugins.includes(plugin)) {
+        return false;
+      }
+      return true;
+    },
     extend: (pluginActions) => baseClient.extend(pluginActions) as LockerClient,
 
     installPlugin: async (plugin) => {

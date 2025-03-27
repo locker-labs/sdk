@@ -1,0 +1,21 @@
+{
+  "name": "bridge-and-split",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@aa-sdk/core": "^4.18.0-alpha.3",
+    "@aa-sdk/ethers": "^4.18.0-alpha.3",
+    "@account-kit/infra": "^4.18.0-alpha.3",
+    "@account-kit/smart-contracts": "^4.18.0-alpha.4",
+    "@alchemy/aa-accounts": "^3.19.0",
+    "alchemy-sdk": "^3.5.5",
+    "@locker-labs/sdk": "workspace:*"
+  }
+}

@@ -31,7 +31,8 @@
     "!.changeset"
   ],
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/node-fetch": "^2.6.12"
   },
   "peerDependencies": {
     "typescript": "^5"
@@ -66,6 +67,10 @@
     }
   },
   "dependencies": {
-    "rimraf": "^6.0.1"
+    "@coral-xyz/anchor": "^0.29.0",
+    "@solana/spl-token": "^0.4.1",
+    "@solana/web3.js": "^1.90.2",
+    "rimraf": "^6.0.1",
+    "viem": "^2.23.15"
   }
 }

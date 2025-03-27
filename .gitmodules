@@ -1,3 +1,7 @@
 [submodule "contracts/lib/openzeppelin-contracts"]
 	path = contracts/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "contracts/lib/modular-account"]
+	path = contracts/lib/modular-account
+	url = https://github.com/alchemyplatform/modular-account
+	branch = v1.0.x

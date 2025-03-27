@@ -1,14 +1,24 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.19;
 
-import {BasePlugin} from "../BasePlugin.sol";
-import {IPluginExecutor} from "../../interfaces/IPluginExecutor.sol";
-import {IStandardExecutor} from "../../interfaces/IStandardExecutor.sol";
-import {ManifestFunction, ManifestExecutionHook, ManifestAssociatedFunctionType, ManifestAssociatedFunction, PluginManifest, PluginMetadata, IPlugin} from "../../interfaces/IPlugin.sol";
+import {BasePlugin} from "@modular-account/plugins/BasePlugin.sol";
+import {IPluginExecutor} from "@modular-account/interfaces/IPluginExecutor.sol";
+import {IStandardExecutor} from "@modular-account/interfaces/IStandardExecutor.sol";
+import {
+  ManifestFunction,
+  ManifestExecutionHook,
+  ManifestAssociatedFunctionType,
+  ManifestAssociatedFunction,
+  PluginManifest,
+  PluginMetadata,
+  IPlugin
+} from "@modular-account/interfaces/IPlugin.sol";
 import {IERC20} from "forge-std/interfaces/IERC20.sol";
-import {UserOperation} from "../../interfaces/erc4337/UserOperation.sol";
-import {SIG_VALIDATION_PASSED
-} from "../../libraries/Constants.sol";
+import {UserOperation} from "@modular-account/interfaces/erc4337/UserOperation.sol";
+import {
+  SIG_VALIDATION_PASSED
+} from "@modular-account/libraries/Constants.sol";
+
 
 /// @title Savings Plugin
 /// @author Locker

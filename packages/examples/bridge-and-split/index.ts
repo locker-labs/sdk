@@ -1,7 +1,6 @@
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
-import { bridgeTokenFromSolana, CIRCLE_CONFIG, type IBridgeFromSolanaResponse, type IBridgeName, type ISolanaNetwork } from "@locker-labs/sdk";
-import type { ICctpBridgeFromSolanaResponse } from '../../core/_types/bridge/providers/cctp/cctpBridge';
+import { bridgeTokenFromSolana, CIRCLE_CONFIG, type IBridgeFromSolanaResponse, type IBridgeName, type ISolanaNetwork, type ICctpBridgeFromSolanaResponse } from "@locker-labs/sdk";
 
 /*
 * Load environment variables

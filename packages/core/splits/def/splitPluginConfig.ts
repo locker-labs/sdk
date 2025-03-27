@@ -1,7 +1,7 @@
 import type { PluginConfig } from "@account-kit/plugingen";
-import { sepolia, baseSepolia } from "viem/chains";
-import { MultiOwnerPluginGenConfig } from "../multi-owner/config";
-import { SplitPluginAbi } from "./abi";
+import {  baseSepolia } from "viem/chains";
+import { MultiOwnerPluginGenConfig } from "./multiPlugin";
+import { SplitPluginAbi } from "./splitPluginAbi";
 
 // sepolia 0xFEd11a0C1c292F2823757925122222bb28b13443
 export const SPLIT_PLUGIN_ADDRESS =

@@ -64,7 +64,6 @@ export const getDepositForBurnPdas = (
  * Helper function to fetch Circle's attestation data for a specific Solana transaction.
  */
 export async function getMessages(txHash: string, irisApiUrl: string) {
-    console.log("Fetching messages for tx...", txHash);
     let attestationResponse: any = {};
     const solanaDomain = CCTP_DOMAIN_IDS.solana;
 

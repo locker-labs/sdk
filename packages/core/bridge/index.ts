@@ -1,10 +1,10 @@
 import { cctpBridgeTokenFromSolana } from './providers/cctp/cctpBridge';
-import type { IBridgeFromSolanaParams } from './types';
+import type { IBridgeFromSolanaParams, IBridgeFromSolanaResponse } from './types';
 
 /**
  * Bridges a token from Solana to another chain.
  */
-export async function bridgeTokenFromSolana(bridgeFromSolanaParams: IBridgeFromSolanaParams): Promise<void> {
+export async function bridgeTokenFromSolana(bridgeFromSolanaParams: IBridgeFromSolanaParams): Promise<IBridgeFromSolanaResponse> {
     const { bridgeName } = bridgeFromSolanaParams;
     if (bridgeName === 'cctp') {
         return cctpBridgeTokenFromSolana(bridgeFromSolanaParams);

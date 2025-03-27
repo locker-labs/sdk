@@ -1,6 +1,6 @@
 ## Getting Started
 ```zsh
-pnpm add @locker-labs/sdk
+bun add @locker-labs/sdk
 ```
 
 ## Usage
@@ -14,11 +14,11 @@ console.log(message)
 ## Development
 ```zsh
 # Install dependencies  
-pnpm install
+bun install
 
 # Build the package
-pnpm build
+bun run build
 
 # Publish the package
-pnpm publish --access public
+bun publish --access public
 ```

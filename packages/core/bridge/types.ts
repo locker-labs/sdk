@@ -17,3 +17,8 @@ export type IBridgeFromSolanaParams = {
     solanaNetwork: ISolanaNetwork;
     bridgeName: IBridgeName;
 }
+
+export type IBridgeFromSolanaResponse = {
+    depositTx: string;
+    reclaimTx?: string;
+}

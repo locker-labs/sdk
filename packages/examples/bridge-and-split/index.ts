@@ -1,6 +1,7 @@
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
-import { bridgeTokenFromSolana, CIRCLE_CONFIG, type IBridgeName, type ISolanaNetwork } from "@locker-labs/sdk";
+import { bridgeTokenFromSolana, CIRCLE_CONFIG, type IBridgeFromSolanaResponse, type IBridgeName, type ISolanaNetwork } from "@locker-labs/sdk";
+import type { ICctpBridgeFromSolanaResponse } from '../../core/_types/bridge/providers/cctp/cctpBridge';
 
 /*
 * Load environment variables
@@ -40,5 +41,6 @@ const params = {
 }
 
 console.log("About to bridge from Solana to " + recipientChain + ": " + solanaSigner.publicKey.toBase58() + " -> " + recipientAddress)
-await bridgeTokenFromSolana(params)
+const response: IBridgeFromSolanaResponse = await bridgeTokenFromSolana(params) as ICctpBridgeFromSolanaResponse
 console.log("Bridge tx submitted. Next step is to withdraw the funds on the recipient chain.")
+console.log(response)

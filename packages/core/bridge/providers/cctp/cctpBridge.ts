@@ -1,15 +1,21 @@
 import { Connection, Keypair, PublicKey } from '@solana/web3.js';
 import { CCTP_DOMAIN_IDS, CIRCLE_CONFIG } from './cctpConstants';
 import { evmAddressToBytes32, findOrCreateUserTokenAccount, getDepositForBurnPdas, getMessages, getPrograms } from './cctpUtils';
-import type { IBridgeFromSolanaParams } from '../../types';
+import type { IBridgeFromSolanaParams, IBridgeFromSolanaResponse } from '../../types';
 import * as spl from '@solana/spl-token';
 import { hexToBytes } from 'viem';
 import * as anchor from "@coral-xyz/anchor";
 
+export interface ICctpBridgeFromSolanaResponse extends IBridgeFromSolanaResponse {
+    attestation: string;
+    message: string;
+    eventNonce: string;
+}
+
 /**
  * Bridges tokens from Solana -> EVM using Circle's CCTP.
  */
-export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams): Promise<void> {
+export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams): Promise<ICctpBridgeFromSolanaResponse> {
     const {
         solanaSigner,
         solanaTokenAddress,
@@ -60,11 +66,6 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         destinationDomainId
     );
 
-    console.log("\n\nCalling depositForBurn with parameters:");
-    console.log("amount:", amount);
-    console.log("destinationDomain:", destinationDomainId);
-    console.log("evmRecipientAddress:", recipientAddress);
-
     // Generate a new keypair for the MessageSent event account.
     const messageSentEventAccountKeypair = Keypair.generate();
 
@@ -94,17 +95,14 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         .signers([messageSentEventAccountKeypair])
         .rpc();
 
-    console.log("depositForBurn txHash:", depositForBurnTx);
-
     // Fetch attestation from the Attestation Service
     const response = await getMessages(depositForBurnTx, irisApiUrl);
-    const { attestation: attestationHex } = response.messages[0];
-    console.log("depositForBurn message info:", response.messages[0]);
+    const { attestation, message, eventNonce } = response.messages[0];
 
     // (Optional) reclaim event account rent
     const reclaimEventAccountTx = await messageTransmitterProgram.methods
         .reclaimEventAccount({
-            attestation: Buffer.from(attestationHex.replace("0x", ""), "hex"),
+            attestation: Buffer.from(attestation.replace("0x", ""), "hex"),
         })
         .accounts({
             payee: provider.wallet.publicKey,
@@ -113,6 +111,11 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         })
         .rpc();
 
-    console.log("reclaimEventAccount txHash:", reclaimEventAccountTx);
-    console.log("Event account reclaimed. SOL rent refunded.");
+    return {
+        depositTx: depositForBurnTx,
+        reclaimTx: reclaimEventAccountTx,
+        attestation,
+        message,
+        eventNonce,
+    }
 }

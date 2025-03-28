@@ -117,5 +117,6 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         attestation,
         message,
         eventNonce,
+        recipientChain,
     }
 }

@@ -22,3 +22,11 @@ bun run build
 # Publish the package
 bun publish --access public
 ```
+
+### Generating a plugin actions file
+- Create a config file, refer to splits/def/splitPluginConfig.
+- Update plugingen.config.ts to refer to the added config file.
+- Then run command:
+```zsh 
+bunx plugingen generate 
+```

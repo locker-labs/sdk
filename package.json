@@ -1,19 +1,19 @@
 {
-    "workspaces": [
-        "packages/core",
-        "packages/examples/bridge-and-split"
-    ],
-    "version": "0.0.1",
-    "private": true,
-    "author": "Locker",
-    "type": "module",
-    "sideEffects": false,
-    "devDependencies": {},
-    "description": "",
-    "keywords": [],
-    "license": "MIT",
-    "scripts": {},
-    "simple-git-hooks": {
-        "pre-commit": "bun run format && bun run lint:fix"
-    }
+  "workspaces": [
+    "packages/core",
+    "packages/examples/bridge-and-split"
+  ],
+  "version": "0.0.1",
+  "private": true,
+  "author": "Locker",
+  "type": "module",
+  "sideEffects": false,
+  "devDependencies": {},
+  "description": "",
+  "keywords": [],
+  "license": "MIT",
+  "scripts": {},
+  "simple-git-hooks": {
+    "pre-commit": "bun run format && bun run lint:fix"
+  }
 }

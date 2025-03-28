@@ -9,8 +9,10 @@ import { type MessageTransmitter } from './target/types/message_transmitter';
 import { type TokenMessengerMinter } from './target/types/token_messenger_minter';
 import * as MessageTransmitterIDL from './target/idl/message_transmitter.json';
 import * as TokenMessengerMinterIDL from './target/idl/token_messenger_minter.json';
-import { CCTP_DOMAIN_IDS } from './cctpConstants';
+import { CCTP_DOMAIN_IDS, CCTP_EVM_CONTRACTS } from './cctpConstants';
 import type { IBridgeFromSolanaParams } from "../../types";
+import * as evmMessageTransmitterAbi from './abi/evm/message_transmitter.json';
+import type { Address } from "viem";
 
 /**
  * Returns the Anchor programs for MessageTransmitter + TokenMessengerMinter.
@@ -138,4 +140,24 @@ export async function findOrCreateUserTokenAccount(
     } catch (error) {
         throw new Error("Token account not found");
     }
+}
+
+export function getMessageTransmitterFromChain(chain: string) {
+    if (chain === 'base') {
+        return {
+            abi: evmMessageTransmitterAbi,
+            address: CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER.base as Address,
+        }
+    } else if (chain === 'baseSepolia') {
+        return {
+            abi: evmMessageTransmitterAbi,
+            address: CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER.baseSepolia as Address,
+        }
+    } else if (chain === 'ethereumSepolia') {
+        return {
+            abi: evmMessageTransmitterAbi,
+            address: CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER.ethereumSepolia as Address,
+        }
+    }
+    throw new Error(`Unsupported chain: ${chain}`);
 }

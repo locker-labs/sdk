@@ -13,7 +13,7 @@
     "ethereum",
     "erc-4337",
     "erc-6900",
-    "splits",
+    "split",
     "round up savings",
     "yield"
   ],
@@ -31,6 +31,7 @@
     "!.changeset"
   ],
   "devDependencies": {
+    "@account-kit/plugingen": "^4.19.0",
     "@types/bun": "latest",
     "@types/node-fetch": "^2.6.12"
   },
@@ -67,10 +68,13 @@
     }
   },
   "dependencies": {
+    "@account-kit/smart-contracts": "^4.14.0",
     "@coral-xyz/anchor": "^0.29.0",
     "@solana/spl-token": "^0.4.1",
     "@solana/web3.js": "^1.90.2",
+    "dotenv": "^16.4.7",
+    "dotenv-expand": "^12.0.1",
     "rimraf": "^6.0.1",
-    "viem": "^2.23.15"
+    "viem": "^2.24.1"
   }
 }

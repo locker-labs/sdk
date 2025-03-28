@@ -153,6 +153,11 @@ export function getMessageTransmitterFromChain(chain: string) {
             abi: baseMessageTransmitterAbi,
             address: CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER.baseSepolia as Address,
         }
+    } else if (chain === 'ethereumSepolia') {
+        return {
+            abi: baseMessageTransmitterAbi,
+            address: CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER.ethereumSepolia as Address,
+        }
     }
     throw new Error(`Unsupported chain: ${chain}`);
 }

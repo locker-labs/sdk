@@ -3,7 +3,7 @@ import {
   type LockerClientParams,
   type LockerClient,
 } from "accounts";
-import { encodeAbiParameters, type Address } from "viem";
+import { type Address } from "viem";
 import { splitPluginActions } from "./utils/splitPlugin";
 import { isSplitPluginInstalled } from "./utils/helpers";
 import { SPLIT_PLUGIN_ADDRESS } from "./def/splitPluginConfig";

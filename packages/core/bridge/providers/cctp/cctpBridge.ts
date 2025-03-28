@@ -1,10 +1,11 @@
 import { Connection, Keypair, PublicKey } from '@solana/web3.js';
 import { CCTP_DOMAIN_IDS, CIRCLE_CONFIG } from './cctpConstants';
-import { evmAddressToBytes32, findOrCreateUserTokenAccount, getDepositForBurnPdas, getMessages, getPrograms } from './cctpUtils';
+import { evmAddressToBytes32, findOrCreateUserTokenAccount, getDepositForBurnPdas, getMessages, getPrograms, getMessageTransmitterFromChain } from './cctpUtils';
 import type { IBridgeFromSolanaParams, IBridgeFromSolanaResponse } from '../../types';
 import * as spl from '@solana/spl-token';
-import { hexToBytes } from 'viem';
+import { hexToBytes, keccak256, toHex, encodeAbiParameters, type Address } from 'viem';
 import * as anchor from "@coral-xyz/anchor";
+import type { LockerSplitClient } from 'split';
 
 export interface ICctpBridgeFromSolanaResponse extends IBridgeFromSolanaResponse {
     attestation: string;
@@ -117,5 +118,43 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         attestation,
         message,
         eventNonce,
+        recipientChain,
     }
+}
+
+/**
+ * Receives tokens bridged from Solana -> EVM using Circle's CCTP.
+ */
+export async function cctpReceiveTokenFromSolana(
+  cctpResponse: ICctpBridgeFromSolanaResponse,
+  splitsClient: LockerSplitClient,
+): Promise<ICctpBridgeFromSolanaResponse> {
+  const {
+      attestation,
+      message,
+      recipientChain,
+  } = cctpResponse;
+
+  const messageTransmitter = getMessageTransmitterFromChain(recipientChain);
+
+  const selector = keccak256(toHex('receiveMessage(bytes,bytes)')).slice(0, 10);
+  const suffixData = encodeAbiParameters(
+    [
+      { name: "message", type: "bytes" },
+      { name: "attestation", type: "bytes" },
+    ],
+    [message as Address, attestation as Address]
+  );
+  const data = selector + suffixData.slice(2);
+
+  // Encode the function call
+//   const data = encodeFunctionData({
+//       abi: baseMessageTransmitterAbi,
+//       functionName: 'receiveMessage',
+//       args: [message, attestation],
+//   });
+
+  // Sends a receiveMessage userOp to complete the bridge
+  const response = await splitsClient.sendUserOps(messageTransmitter.address, data as Address, BigInt(0));
+  return response;    
 }

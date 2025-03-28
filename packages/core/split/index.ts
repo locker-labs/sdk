@@ -4,7 +4,7 @@ import {
   type LockerClient,
 } from "accounts";
 import { type Address } from "viem";
-import { splitPluginActions } from "./utils/splitsPlugin";
+import { splitPluginActions } from "./utils/splitPlugin";
 import { isSplitPluginInstalled } from "./utils/helpers";
 import { SPLIT_PLUGIN_ADDRESS } from "./def/splitPluginConfig";
 
@@ -19,7 +19,7 @@ export interface LockerSplitClient extends LockerClient {
     percentage: number[],
     receiverAddresses: Address[]
   ) => Promise<any>;
-  isSplitsPluginInstalled: () => Promise<boolean>;
+  isSplitPluginInstalled: () => Promise<boolean>;
   uninstallSplitPlugin: () => Promise<any>;
   toggleAutomation: (configIndex: number) => Promise<any>;
   split: (configIndex: number) => Promise<any>;
@@ -27,7 +27,7 @@ export interface LockerSplitClient extends LockerClient {
 }
 
 /**
- * Creates a locker splits client that the end user interacts with.
+ * Creates a Locker Split Client that the end user interacts with.
  * It takes in all necessary parameters to build the extended client, then wraps it to expose only selected functions.
  *
  * @param params - The configuration parameters(ExtendedClientParams) for creating the client.
@@ -37,7 +37,7 @@ export async function createLockerSplitClient(
   params: LockerClientParams
 ): Promise<LockerSplitClient> {
   const lockerClient = await createLockerClient(params);
-  const splitsLockerClient = await lockerClient.extend(splitPluginActions);
+  const splitLockerClient = await lockerClient.extend(splitPluginActions);
 
   return {
     ...lockerClient,
@@ -46,11 +46,11 @@ export async function createLockerSplitClient(
       percentage: number[],
       receiverAddresses: string[]
     ): Promise<any> {
-      if (!(await isSplitPluginInstalled(splitsLockerClient))) {
+      if (!(await isSplitPluginInstalled(splitLockerClient))) {
         console.log("Split plugin not installed.");
         return null;
       }
-      const res = await splitsLockerClient.createSplit({
+      const res = await splitLockerClient.createSplit({
         args: [tokenAddress, receiverAddresses, percentage],
       });
       return res;
@@ -60,54 +60,54 @@ export async function createLockerSplitClient(
       percentage: number[],
       receiverAddresses: Address[]
     ): Promise<any> {
-      if (await isSplitPluginInstalled(splitsLockerClient)) {
+      if (await isSplitPluginInstalled(splitLockerClient)) {
         console.log("Split plugin already installed.");
         return null;
       }
-      const res = await splitsLockerClient.installSplitPlugin({
+      const res = await splitLockerClient.installSplitPlugin({
         args: [tokenAddress, receiverAddresses, percentage],
       });
       return res;
     },
-    async isSplitsPluginInstalled(): Promise<boolean> {
-      return await isSplitPluginInstalled(splitsLockerClient);
+    async isSplitPluginInstalled(): Promise<boolean> {
+      return await isSplitPluginInstalled(splitLockerClient);
     },
     async uninstallSplitPlugin(): Promise<any> {
-      if (!(await isSplitPluginInstalled(splitsLockerClient))) {
+      if (!(await isSplitPluginInstalled(splitLockerClient))) {
         console.log("Split plugin not installed.");
         return null;
       }
-      const res = await splitsLockerClient.uninstallPlugin({
+      const res = await splitLockerClient.uninstallPlugin({
         pluginAddress: SPLIT_PLUGIN_ADDRESS,
       });
       return res;
     },
     async toggleAutomation(configIndex: number): Promise<any> {
-      if (!(await isSplitPluginInstalled(splitsLockerClient))) {
+      if (!(await isSplitPluginInstalled(splitLockerClient))) {
         console.log("Split plugin not installed.");
         return null;
       }
-      const res = await splitsLockerClient.pauseAutomation({
+      const res = await splitLockerClient.pauseAutomation({
         args: [configIndex],
       });
       return res;
     },
     async split(configIndex: number): Promise<any> {
-      if (!(await isSplitPluginInstalled(splitsLockerClient))) {
+      if (!(await isSplitPluginInstalled(splitLockerClient))) {
         console.log("Split plugin not installed.");
         return null;
       }
-      const res = await splitsLockerClient.split({
+      const res = await splitLockerClient.split({
         args: [BigInt(configIndex)],
       });
       return res;
     },
     async deleteSplit(configIndex: number): Promise<any> {
-      if (!(await isSplitPluginInstalled(splitsLockerClient))) {
+      if (!(await isSplitPluginInstalled(splitLockerClient))) {
         console.log("Split plugin not installed.");
         return null;
       }
-      const res = await splitsLockerClient.deleteSplitConfig({
+      const res = await splitLockerClient.deleteSplitConfig({
         args: [BigInt(configIndex)],
       });
       return res;

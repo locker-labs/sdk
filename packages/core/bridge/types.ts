@@ -21,4 +21,5 @@ export type IBridgeFromSolanaParams = {
 export type IBridgeFromSolanaResponse = {
     depositTx: string;
     reclaimTx?: string;
+    recipientChain: string;
 }

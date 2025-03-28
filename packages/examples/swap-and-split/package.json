@@ -1,0 +1,22 @@
+{
+  "name": "swap-and-split",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@aa-sdk/core": "^4.19.0",
+    "@account-kit/infra": "^4.19.0",
+    "@account-kit/smart-contracts": "^4.19.0",
+    "@cowprotocol/app-data": "^2.5.1",
+    "@cowprotocol/contracts": "^1.7.0",
+    "@cowprotocol/cow-sdk": "^5.10.2",
+    "dotenv": "^16.4.7",
+    "viem": "^2.24.1"
+  }
+}

@@ -1,5 +1,5 @@
 import type { PluginConfig } from "@account-kit/plugingen";
-import { type Address, parseAbiParameters } from "viem";
+import { type Address } from "viem";
 import { base, sepolia } from "viem/chains";
 import { MultiOwnerPluginGenConfig } from "./multiPlugin";
 import { SplitPluginAbi } from "./splitPluginAbi";
@@ -23,7 +23,7 @@ export const SplitPluginGenConfig: PluginConfig = {
     [base.id]: SPLIT_PLUGIN_BASE,
   },
   installConfig: {
-    initAbiParams: parseAbiParameters("address,address[],uint8[]"),
+    initAbiParams: [],
 
     dependencies: [
       {

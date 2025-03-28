@@ -108,11 +108,7 @@ type ExecutionActions<
   ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
 };
 
-type InstallArgs = [
-  { type: "address" },
-  { type: "address[]" },
-  { type: "uint8[]" },
-];
+type InstallArgs = [];
 
 export type InstallSplitPluginParams = {
   args: Parameters<typeof encodeAbiParameters<InstallArgs>>[1];
@@ -390,10 +386,7 @@ export const splitPluginActions: <
 
     return installPlugin_(client, {
       pluginAddress,
-      pluginInitData: encodeAbiParameters(
-        [{ type: "address" }, { type: "address[]" }, { type: "uint8[]" }],
-        params.args,
-      ),
+      pluginInitData: encodeAbiParameters([], params.args),
       dependencies,
       overrides,
       account,

@@ -1,17 +1,21 @@
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
 import { type Address } from "viem";
-import { baseSepolia } from "viem/chains";
+import { baseSepolia } from "@account-kit/infra";
 import { LocalAccountSigner } from "@aa-sdk/core";
 import {
   bridgeTokenFromSolana,
+  receiveTokenFromSolana,
+  bridgeAndReceiveTokenFromSolana,
   CIRCLE_CONFIG,
+  USDC,
   createLockerSplitClient,
   type IBridgeFromSolanaResponse,
   type IBridgeName,
   type ISolanaNetwork,
   type ICctpBridgeFromSolanaResponse,
 } from "@locker-labs/sdk";
+import { waitForTransaction } from "./helpers";
 
 /*
  * Load environment variables
@@ -26,21 +30,54 @@ if (!solanaRpcUrl) {
   throw new Error("SOLANA_RPC_URL is not set");
 }
 
+const evmPrivateKey = process.env.EVM_PRIVATE_KEY;
+if (!evmPrivateKey) {
+  throw new Error("EVM_PRIVATE_KEY is not set");
+}
+
+const lockerApiKey = process.env.LOCKER_API_KEY;
+if (!lockerApiKey) {
+  throw new Error("LOCKER_API_KEY is not set");
+}
+
 /*
  * Runtime configs
  */
 const solanaNetwork: ISolanaNetwork = "devnet";
 const usdcMintAddress = CIRCLE_CONFIG[solanaNetwork].usdcAddress;
-const usdcAmount = 1;
-const recipientChain = "base";
-const recipientAddress = "0xF445b07Aad98De9cc2794593B68ecD4aa5f81076";
+const usdcAmount = 3;
+const recipientChain = "baseSepolia";
 const bridgeName: IBridgeName = "cctp";
 
+// Create a locker split client.
+const splitClient = await createLockerSplitClient({
+  apiKey: lockerApiKey,
+  chain: baseSepolia,
+  signer: LocalAccountSigner.privateKeyToAccountSigner(evmPrivateKey as Address),
+});
+
+// @ts-ignore
+const recipientAddress = splitClient.address();
+
+// Split config for plugin installation (one time)
 const splitRecipients = [
   "0xFffffffffffffffffffffffffffffffffffffffff",
   "0xFffffffffffffffffffffffffffffffffffffffff",
 ] as Address[];
 const splitPercentages = [95, 5];
+
+// const isSplitPluginInstalled = await splitClient.isSplitPluginInstalled();
+// if (!isSplitPluginInstalled) {
+//   const res = await splitClient.installSplitPlugin(
+//     USDC.baseSepolia!,
+//     splitPercentages,
+//     splitRecipients
+//   );
+//   if (res) {
+//     await waitForTransaction(res.hash);
+//   }
+//   console.log("Split plugin installed with:", res);
+// }
 
 // CCTP to transfer from Solana to Base
 const solanaPrivateKeyUint8Array = bs58.decode(solanaPrivateKeyB58);
@@ -55,25 +92,6 @@ console.log(
   recipientAddress
 );
 
-// Create a locker split client.
-const splitClient = await createLockerSplitClient({
-  apiKey: process.env.LOCKER_API_KEY as string,
-  chain: baseSepolia,
-  signer: LocalAccountSigner.privateKeyToAccountSigner(
-    process.env.PRIV_KEY as `0x${string}`
-  ),
-});
-
-const isSplitPluginInstalled = await splitClient.isSplitPluginInstalled();
-if (!isSplitPluginInstalled) {
-  const res = await splitClient.installSplitPlugin(
-    CIRCLE_CONFIG[baseSepolia].usdcAddress,
-    splitPercentages,
-    splitRecipients
-  );
-  console.log("Split plugin installed with:", res);
-}
-
 const params = {
   solanaSigner,
   solanaTokenAddress: usdcMintAddress,
@@ -85,8 +103,7 @@ const params = {
   solanaRpcUrl,
 };
 
-// TODO: Use splitClient to execute bridging
-
-const response: IBridgeFromSolanaResponse = await bridgeTokenFromSolana(params) as ICctpBridgeFromSolanaResponse
-console.log("Bridge tx submitted. Next step is to withdraw the funds on the recipient chain.")
-console.log(response)
+// Bridge and Receive token from Solana
+const response = await bridgeAndReceiveTokenFromSolana(params, splitClient);
+console.log(`Received token from Solana on ${recipientChain}:`);
+console.log(response);

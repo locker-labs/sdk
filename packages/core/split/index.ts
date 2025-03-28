@@ -14,11 +14,7 @@ export interface LockerSplitClient extends LockerClient {
     percentage: number[],
     receiverAddresses: Address[]
   ) => Promise<any>;
-  installSplitPlugin: (
-    tokenAddress: Address,
-    percentage: number[],
-    receiverAddresses: Address[]
-  ) => Promise<any>;
+  installSplitPlugin: () => Promise<any>;
   isSplitPluginInstalled: () => Promise<boolean>;
   uninstallSplitPlugin: () => Promise<any>;
   toggleAutomation: (configIndex: number) => Promise<any>;
@@ -55,17 +51,13 @@ export async function createLockerSplitClient(
       });
       return res;
     },
-    async installSplitPlugin(
-      tokenAddress: Address,
-      percentage: number[],
-      receiverAddresses: Address[]
-    ): Promise<any> {
+    async installSplitPlugin(): Promise<any> {
       if (await isSplitPluginInstalled(splitLockerClient)) {
         console.log("Split plugin already installed.");
         return null;
       }
       const res = await splitLockerClient.installSplitPlugin({
-        args: [tokenAddress, receiverAddresses, percentage],
+        args: [],
       });
       return res;
     },

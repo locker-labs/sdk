@@ -5,6 +5,7 @@ import type { ISolanaNetwork } from "../../types";
  */
 export const CCTP_DOMAIN_IDS: Record<string, number> = {
     ethereum: 0,
+    ethereumSepolia: 0,
     avalanche: 1,
     optimism: 2,
     arbitrum: 3,
@@ -20,18 +21,13 @@ export const CCTP_DOMAIN_IDS: Record<string, number> = {
 
 
 export const CIRCLE_CONFIG: Record<ISolanaNetwork, {
-    usdcAddress: string;
     irisApiUrl: string;
 }> = {
     "devnet": {
-        // https://developers.circle.com/stablecoins/usdc-on-test-networks
-        "usdcAddress": "4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU",
         "irisApiUrl": "https://iris-api-sandbox.circle.com",
     },
     "mainnet": {
-        // https://developers.circle.com/stablecoins/usdc-on-main-networks
-        "usdcAddress": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-        "irisApiUrl": "https://iris-api-sandbox.circle.com",
+        "irisApiUrl": "https://iris-api.circle.com",
     },
 }
 
@@ -43,6 +39,7 @@ export const CCTP_EVM_CONTRACTS = {
         MESSAGE_TRANSMITTER: {
             base: "0xAD09780d193884d503182aD4588450C416D6F9D4",
             baseSepolia: "0x7865fAfC2db2093669d92c0F33AeEF291086BEFD",
+            ethereumSepolia: "0x7865fAfC2db2093669d92c0F33AeEF291086BEFD",
         }
     }
 }

@@ -6,6 +6,7 @@ import * as spl from '@solana/spl-token';
 import { hexToBytes, keccak256, toHex, encodeAbiParameters, type Address } from 'viem';
 import * as anchor from "@coral-xyz/anchor";
 import type { LockerSplitClient } from 'split';
+import { USDC } from 'bridge/constants';
 
 export interface ICctpBridgeFromSolanaResponse extends IBridgeFromSolanaResponse {
     attestation: string;
@@ -28,7 +29,6 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
     } = params;
 
     const {
-        usdcAddress,
         irisApiUrl,
     } = CIRCLE_CONFIG[mode];
 
@@ -40,8 +40,8 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         params
     );
 
-    if (solanaTokenAddress !== usdcAddress) {
-        throw new Error(`Cannot bridge token ${solanaTokenAddress} with CCTP in mode ${mode}. Expected USDC at ${usdcAddress}.`);
+    if (solanaTokenAddress !== USDC.solana[mode]) {
+        throw new Error(`Cannot bridge token ${solanaTokenAddress} with CCTP in mode ${mode}. Expected USDC at ${USDC.solana[mode]}.`);
     }
 
     // Create a new Provider based on the signer's Keypair
@@ -149,7 +149,7 @@ export async function cctpReceiveTokenFromSolana(
 
   // Encode the function call
 //   const data = encodeFunctionData({
-//       abi: baseMessageTransmitterAbi,
+//       abi: evmMessageTransmitterAbi,
 //       functionName: 'receiveMessage',
 //       args: [message, attestation],
 //   });

@@ -1,8 +1,12 @@
-import { SPLIT_PLUGIN_ADDRESS } from "../def/splitPluginConfig";
+import { chainToSplitPluginAddress } from "../def/splitPluginConfig";
 
-async function isSplitPluginInstalled(extendedAccount: any): Promise<boolean> {
+async function isSplitPluginInstalled(
+  extendedAccount: any,
+  chainId: number
+): Promise<boolean> {
+  const splitPluginAddress = chainToSplitPluginAddress[chainId];
   const installedPlugins = await extendedAccount.getInstalledPlugins({});
-  if (!installedPlugins.includes(SPLIT_PLUGIN_ADDRESS)) {
+  if (!installedPlugins.includes(splitPluginAddress)) {
     return false;
   }
   return true;

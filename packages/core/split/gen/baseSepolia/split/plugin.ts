@@ -1,3 +1,488 @@
+import {
+  getContract,
+  encodePacked,
+  encodeAbiParameters,
+  encodeFunctionData,
+  type Address,
+  type GetContractReturnType,
+  type Transport,
+  type PublicClient,
+  type Client,
+  type EncodeFunctionDataParameters,
+  type Chain,
+  type Hex,
+} from "viem";
+import {
+  ChainNotFoundError,
+  AccountNotFoundError,
+  isSmartAccountClient,
+  IncompatibleClientError,
+  type SmartContractAccount,
+  type GetAccountParameter,
+  type SendUserOperationResult,
+  type GetEntryPointFromAccount,
+  type UserOperationOverridesParameter,
+  type UserOperationContext,
+  type GetContextParameter,
+} from "@aa-sdk/core";
+import {
+  installPlugin as installPlugin_,
+  type Plugin,
+  type FunctionReference,
+} from "@account-kit/smart-contracts";
+import { MultiOwnerPlugin } from "../../multiPlugin.js";
+
+type ExecutionActions<
+  TAccount extends SmartContractAccount | undefined =
+    | SmartContractAccount
+    | undefined,
+  TContext extends UserOperationContext | undefined =
+    | UserOperationContext
+    | undefined,
+  TEntryPointVersion extends
+    GetEntryPointFromAccount<TAccount> = GetEntryPointFromAccount<TAccount>,
+> = {
+  createSplit: (
+    args: Pick<
+      EncodeFunctionDataParameters<
+        typeof SplitPluginExecutionFunctionAbi,
+        "createSplit"
+      >,
+      "args"
+    > &
+      UserOperationOverridesParameter<TEntryPointVersion> &
+      GetAccountParameter<TAccount> &
+      GetContextParameter<TContext>,
+  ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
+
+  toggleIsSplitEnabled: (
+    args: Pick<
+      EncodeFunctionDataParameters<
+        typeof SplitPluginExecutionFunctionAbi,
+        "toggleIsSplitEnabled"
+      >,
+      "args"
+    > &
+      UserOperationOverridesParameter<TEntryPointVersion> &
+      GetAccountParameter<TAccount> &
+      GetContextParameter<TContext>,
+  ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
+
+  split: (
+    args: Pick<
+      EncodeFunctionDataParameters<
+        typeof SplitPluginExecutionFunctionAbi,
+        "split"
+      >,
+      "args"
+    > &
+      UserOperationOverridesParameter<TEntryPointVersion> &
+      GetAccountParameter<TAccount> &
+      GetContextParameter<TContext>,
+  ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
+
+  updateSplitConfig: (
+    args: Pick<
+      EncodeFunctionDataParameters<
+        typeof SplitPluginExecutionFunctionAbi,
+        "updateSplitConfig"
+      >,
+      "args"
+    > &
+      UserOperationOverridesParameter<TEntryPointVersion> &
+      GetAccountParameter<TAccount> &
+      GetContextParameter<TContext>,
+  ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
+
+  deleteSplitConfig: (
+    args: Pick<
+      EncodeFunctionDataParameters<
+        typeof SplitPluginExecutionFunctionAbi,
+        "deleteSplitConfig"
+      >,
+      "args"
+    > &
+      UserOperationOverridesParameter<TEntryPointVersion> &
+      GetAccountParameter<TAccount> &
+      GetContextParameter<TContext>,
+  ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
+};
+
+type InstallArgs = [];
+
+export type InstallSplitPluginParams = {
+  args: Parameters<typeof encodeAbiParameters<InstallArgs>>[1];
+  pluginAddress?: Address;
+  dependencyOverrides?: FunctionReference[];
+};
+
+type ManagementActions<
+  TAccount extends SmartContractAccount | undefined =
+    | SmartContractAccount
+    | undefined,
+  TContext extends UserOperationContext | undefined =
+    | Record<string, any>
+    | undefined,
+  TEntryPointVersion extends
+    GetEntryPointFromAccount<TAccount> = GetEntryPointFromAccount<TAccount>,
+> = {
+  installSplitPlugin: (
+    args: UserOperationOverridesParameter<TEntryPointVersion> &
+      InstallSplitPluginParams &
+      GetAccountParameter<TAccount> &
+      GetContextParameter<TContext>,
+  ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
+};
+
+type ReadAndEncodeActions = {
+  encodeCreateSplit: (
+    args: Pick<
+      EncodeFunctionDataParameters<
+        typeof SplitPluginExecutionFunctionAbi,
+        "createSplit"
+      >,
+      "args"
+    >,
+  ) => Hex;
+
+  encodeToggleIsSplitEnabled: (
+    args: Pick<
+      EncodeFunctionDataParameters<
+        typeof SplitPluginExecutionFunctionAbi,
+        "toggleIsSplitEnabled"
+      >,
+      "args"
+    >,
+  ) => Hex;
+
+  encodeSplit: (
+    args: Pick<
+      EncodeFunctionDataParameters<
+        typeof SplitPluginExecutionFunctionAbi,
+        "split"
+      >,
+      "args"
+    >,
+  ) => Hex;
+
+  encodeUpdateSplitConfig: (
+    args: Pick<
+      EncodeFunctionDataParameters<
+        typeof SplitPluginExecutionFunctionAbi,
+        "updateSplitConfig"
+      >,
+      "args"
+    >,
+  ) => Hex;
+
+  encodeDeleteSplitConfig: (
+    args: Pick<
+      EncodeFunctionDataParameters<
+        typeof SplitPluginExecutionFunctionAbi,
+        "deleteSplitConfig"
+      >,
+      "args"
+    >,
+  ) => Hex;
+};
+
+export type SplitPluginActions<
+  TAccount extends SmartContractAccount | undefined =
+    | SmartContractAccount
+    | undefined,
+  TContext extends UserOperationContext | undefined =
+    | UserOperationContext
+    | undefined,
+> = ExecutionActions<TAccount, TContext> &
+  ManagementActions<TAccount, TContext> &
+  ReadAndEncodeActions;
+
+const addresses = {
+  8453: "0x981656a00aB861498E2DCE2a94b1dd416B684844" as Address,
+  84532: "0x9fBc03780c1AAc814E6BAD2C35Af4f55fCb31D69" as Address,
+  11155111: "0x1ef5f1E4d06AD60e9A3FD64D00782c21523F7317" as Address,
+} as Record<number, Address>;
+
+export const SplitPlugin: Plugin<typeof SplitPluginAbi> = {
+  meta: {
+    name: "Split Plugin",
+    version: "0.0.1",
+    addresses,
+  },
+  getContract: <C extends Client>(
+    client: C,
+    address?: Address,
+  ): GetContractReturnType<typeof SplitPluginAbi, PublicClient, Address> => {
+    if (!client.chain) throw new ChainNotFoundError();
+
+    return getContract({
+      address: address || addresses[client.chain.id],
+      abi: SplitPluginAbi,
+      client: client,
+    }) as GetContractReturnType<typeof SplitPluginAbi, PublicClient, Address>;
+  },
+};
+
+export const splitPluginActions: <
+  TTransport extends Transport = Transport,
+  TChain extends Chain | undefined = Chain | undefined,
+  TAccount extends SmartContractAccount | undefined =
+    | SmartContractAccount
+    | undefined,
+  TContext extends UserOperationContext | undefined =
+    | UserOperationContext
+    | undefined,
+>(
+  client: Client<TTransport, TChain, TAccount>,
+) => SplitPluginActions<TAccount, TContext> = (client) => ({
+  createSplit({ args, overrides, context, account = client.account }) {
+    if (!account) {
+      throw new AccountNotFoundError();
+    }
+    if (!isSmartAccountClient(client)) {
+      throw new IncompatibleClientError(
+        "SmartAccountClient",
+        "createSplit",
+        client,
+      );
+    }
+
+    const uo = encodeFunctionData({
+      abi: SplitPluginExecutionFunctionAbi,
+      functionName: "createSplit",
+      args,
+    });
+
+    return client.sendUserOperation({ uo, overrides, account, context });
+  },
+  toggleIsSplitEnabled({ args, overrides, context, account = client.account }) {
+    if (!account) {
+      throw new AccountNotFoundError();
+    }
+    if (!isSmartAccountClient(client)) {
+      throw new IncompatibleClientError(
+        "SmartAccountClient",
+        "toggleIsSplitEnabled",
+        client,
+      );
+    }
+
+    const uo = encodeFunctionData({
+      abi: SplitPluginExecutionFunctionAbi,
+      functionName: "toggleIsSplitEnabled",
+      args,
+    });
+
+    return client.sendUserOperation({ uo, overrides, account, context });
+  },
+  split({ args, overrides, context, account = client.account }) {
+    if (!account) {
+      throw new AccountNotFoundError();
+    }
+    if (!isSmartAccountClient(client)) {
+      throw new IncompatibleClientError("SmartAccountClient", "split", client);
+    }
+
+    const uo = encodeFunctionData({
+      abi: SplitPluginExecutionFunctionAbi,
+      functionName: "split",
+      args,
+    });
+
+    return client.sendUserOperation({ uo, overrides, account, context });
+  },
+  updateSplitConfig({ args, overrides, context, account = client.account }) {
+    if (!account) {
+      throw new AccountNotFoundError();
+    }
+    if (!isSmartAccountClient(client)) {
+      throw new IncompatibleClientError(
+        "SmartAccountClient",
+        "updateSplitConfig",
+        client,
+      );
+    }
+
+    const uo = encodeFunctionData({
+      abi: SplitPluginExecutionFunctionAbi,
+      functionName: "updateSplitConfig",
+      args,
+    });
+
+    return client.sendUserOperation({ uo, overrides, account, context });
+  },
+  deleteSplitConfig({ args, overrides, context, account = client.account }) {
+    if (!account) {
+      throw new AccountNotFoundError();
+    }
+    if (!isSmartAccountClient(client)) {
+      throw new IncompatibleClientError(
+        "SmartAccountClient",
+        "deleteSplitConfig",
+        client,
+      );
+    }
+
+    const uo = encodeFunctionData({
+      abi: SplitPluginExecutionFunctionAbi,
+      functionName: "deleteSplitConfig",
+      args,
+    });
+
+    return client.sendUserOperation({ uo, overrides, account, context });
+  },
+  installSplitPlugin({
+    account = client.account,
+    overrides,
+    context,
+    ...params
+  }) {
+    if (!account) {
+      throw new AccountNotFoundError();
+    }
+
+    if (!isSmartAccountClient(client)) {
+      throw new IncompatibleClientError(
+        "SmartAccountClient",
+        "installSplitPlugin",
+        client,
+      );
+    }
+
+    const chain = client.chain;
+    if (!chain) {
+      throw new ChainNotFoundError();
+    }
+
+    const dependencies = params.dependencyOverrides ?? [
+      (() => {
+        const pluginAddress = MultiOwnerPlugin.meta.addresses[chain.id];
+        if (!pluginAddress) {
+          throw new Error(
+            "missing MultiOwnerPlugin address for chain " + chain.name,
+          );
+        }
+
+        return encodePacked(["address", "uint8"], [pluginAddress, 0x0]);
+      })(),
+
+      (() => {
+        const pluginAddress = MultiOwnerPlugin.meta.addresses[chain.id];
+        if (!pluginAddress) {
+          throw new Error(
+            "missing MultiOwnerPlugin address for chain " + chain.name,
+          );
+        }
+
+        return encodePacked(["address", "uint8"], [pluginAddress, 0x1]);
+      })(),
+    ];
+    const pluginAddress =
+      params.pluginAddress ??
+      (SplitPlugin.meta.addresses[chain.id] as Address | undefined);
+
+    if (!pluginAddress) {
+      throw new Error("missing SplitPlugin address for chain " + chain.name);
+    }
+
+    return installPlugin_(client, {
+      pluginAddress,
+      pluginInitData: encodeAbiParameters([], params.args),
+      dependencies,
+      overrides,
+      account,
+      context,
+    });
+  },
+  encodeCreateSplit({ args }) {
+    return encodeFunctionData({
+      abi: SplitPluginExecutionFunctionAbi,
+      functionName: "createSplit",
+      args,
+    });
+  },
+  encodeToggleIsSplitEnabled({ args }) {
+    return encodeFunctionData({
+      abi: SplitPluginExecutionFunctionAbi,
+      functionName: "toggleIsSplitEnabled",
+      args,
+    });
+  },
+  encodeSplit({ args }) {
+    return encodeFunctionData({
+      abi: SplitPluginExecutionFunctionAbi,
+      functionName: "split",
+      args,
+    });
+  },
+  encodeUpdateSplitConfig({ args }) {
+    return encodeFunctionData({
+      abi: SplitPluginExecutionFunctionAbi,
+      functionName: "updateSplitConfig",
+      args,
+    });
+  },
+  encodeDeleteSplitConfig({ args }) {
+    return encodeFunctionData({
+      abi: SplitPluginExecutionFunctionAbi,
+      functionName: "deleteSplitConfig",
+      args,
+    });
+  },
+});
+
+export const SplitPluginExecutionFunctionAbi = [
+  {
+    type: "function",
+    name: "createSplit",
+    inputs: [
+      { name: "_tokenAddress", type: "address", internalType: "address" },
+      { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
+      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "toggleIsSplitEnabled",
+    inputs: [
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "split",
+    inputs: [
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "updateSplitConfig",
+    inputs: [
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+      { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
+      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "deleteSplitConfig",
+    inputs: [
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+] as const;
+
 export const SplitPluginAbi = [
   {
     type: "function",

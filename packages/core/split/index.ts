@@ -10,6 +10,7 @@ import { splitPluginActions as baseSepoliaSplitPluginActions } from "./gen/baseS
 import { isSplitPluginInstalled } from "./utils/helpers";
 import { chainToSplitPluginAddress } from "./def/splitPluginConfig";
 import { base, baseSepolia } from "viem/chains";
+import { waitForTransaction } from '../helpers';
 
 export interface LockerSplitClient extends LockerClient {
   createSplit: (
@@ -58,6 +59,9 @@ export async function createLockerSplitClient(
       const res = await splitLockerClient.createSplit({
         args: [tokenAddress, receiverAddresses, percentage],
       });
+      console.log("Waiting for confirmation...");
+      await waitForTransaction(res.hash);
+      console.log("Split config created:", res);
       return res;
     },
     async installSplitPlugin(): Promise<any> {
@@ -68,6 +72,15 @@ export async function createLockerSplitClient(
       const res = await splitLockerClient.installSplitPlugin({
         args: [],
       });
+
+      let pluginInstalled = await isSplitPluginInstalled(splitLockerClient, chainId);
+      while (!pluginInstalled) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+        pluginInstalled = await isSplitPluginInstalled(splitLockerClient, chainId);
+        console.log("Waiting for split plugin to be installed...");
+      }
+      console.log("Split plugin installed with:", res);
+
       return res;
     },
     async isSplitPluginInstalled(): Promise<boolean> {

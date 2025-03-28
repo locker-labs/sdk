@@ -1,4 +1,4 @@
-const alchemyRpcUrl = process.env.ALCHEMY_BASE_SEPOLIA_RPC_URL!;
+const alchemyRpcUrl = process.env.ALCHEMY_RPC_URL!;
 
 const getUserOperationByHash = async (userOpHash: string) => {
     const headers = {
@@ -20,7 +20,8 @@ const getUserOperationByHash = async (userOpHash: string) => {
         body: body,
       });
       const data: any = await response.json();
-      return data.result.transactionHash
+      console.log({ data });
+      return data?.result?.transactionHash;
     } catch (e) {
       console.error(e);
     }
@@ -47,7 +48,7 @@ const getUserOperationByHash = async (userOpHash: string) => {
       });
 
       const data: any = await response.json();
-      return data.result;
+      return data?.result;
     } catch (error) {
       console.error("Error:", error);
     }
@@ -78,5 +79,4 @@ export const waitForTransaction = async (userOpHash: string) => {
       console.log("Waiting for txReceipt...");
       await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
     }
-
 }

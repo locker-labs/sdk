@@ -6,13 +6,11 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 export const chain = baseSepolia;
-const DEFAULT_PRIV_KEY = process.env.PRIV_KEY!;
-const DEFAULT_ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY!;
 
 export interface LockerClientParams {
   apiKey: string; // Used for the Alchemy transport.
   chain: typeof baseSepolia;
-  signer?: ReturnType<typeof LocalAccountSigner.privateKeyToAccountSigner>;
+  signer: ReturnType<typeof LocalAccountSigner.privateKeyToAccountSigner>;
   merchantSeed1?: string;
 }
 
@@ -28,7 +26,7 @@ function validateClientParams(params: LockerClientParams): void {
   if (!params.chain) {
     throw new Error("Invalid parameter: 'chain' is required.");
   }
-  if (!params.signer && (!DEFAULT_PRIV_KEY || DEFAULT_PRIV_KEY.trim() === "")) {
+  if (!params.signer) {
     throw new Error(
       "Invalid configuration: No signer provided and no default PRIVATE KEY found in environment."
     );
@@ -71,15 +69,11 @@ export async function createLockerClient(
   validateClientParams(params);
 
   const { apiKey, chain, signer } = params;
-  const resolvedSigner =
-    signer ??
-    LocalAccountSigner.privateKeyToAccountSigner(`0x${DEFAULT_PRIV_KEY}`);
-  const resolvedAlchemyApiKey = DEFAULT_ALCHEMY_API_KEY || apiKey;
 
   const baseClient = await createModularAccountAlchemyClient({
-    signer: resolvedSigner,
+    signer,
     chain,
-    transport: alchemy({ apiKey: resolvedAlchemyApiKey }),
+    transport: alchemy({ apiKey }),
   });
 
   const lockerClient: LockerClient = {

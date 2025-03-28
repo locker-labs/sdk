@@ -11,7 +11,7 @@ import * as MessageTransmitterIDL from './target/idl/message_transmitter.json';
 import * as TokenMessengerMinterIDL from './target/idl/token_messenger_minter.json';
 import { CCTP_DOMAIN_IDS, CCTP_EVM_CONTRACTS } from './cctpConstants';
 import type { IBridgeFromSolanaParams } from "../../types";
-import * as baseMessageTransmitterAbi from './abi/base/message_transmitter.json';
+import * as evmMessageTransmitterAbi from './abi/evm/message_transmitter.json';
 import type { Address } from "viem";
 
 /**
@@ -145,17 +145,17 @@ export async function findOrCreateUserTokenAccount(
 export function getMessageTransmitterFromChain(chain: string) {
     if (chain === 'base') {
         return {
-            abi: baseMessageTransmitterAbi,
+            abi: evmMessageTransmitterAbi,
             address: CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER.base as Address,
         }
     } else if (chain === 'baseSepolia') {
         return {
-            abi: baseMessageTransmitterAbi,
+            abi: evmMessageTransmitterAbi,
             address: CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER.baseSepolia as Address,
         }
     } else if (chain === 'ethereumSepolia') {
         return {
-            abi: baseMessageTransmitterAbi,
+            abi: evmMessageTransmitterAbi,
             address: CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER.ethereumSepolia as Address,
         }
     }

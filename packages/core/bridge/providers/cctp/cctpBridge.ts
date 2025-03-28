@@ -149,7 +149,7 @@ export async function cctpReceiveTokenFromSolana(
 
   // Encode the function call
 //   const data = encodeFunctionData({
-//       abi: baseMessageTransmitterAbi,
+//       abi: evmMessageTransmitterAbi,
 //       functionName: 'receiveMessage',
 //       args: [message, attestation],
 //   });

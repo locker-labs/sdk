@@ -6,9 +6,10 @@ import {
 import { type Address } from "viem";
 import { splitPluginActions as baseSplitPluginActions } from "./gen/base/split/plugin";
 import { splitPluginActions as sepoliaSplitPluginActions } from "./gen/sepolia/split/plugin";
+import { splitPluginActions as baseSepoliaSplitPluginActions } from "./gen/baseSepolia/split/plugin";
 import { isSplitPluginInstalled } from "./utils/helpers";
 import { chainToSplitPluginAddress } from "./def/splitPluginConfig";
-import { base } from "viem/chains";
+import { base, baseSepolia } from "viem/chains";
 
 export interface LockerSplitClient extends LockerClient {
   createSplit: (
@@ -38,6 +39,8 @@ export async function createLockerSplitClient(
   const splitPluginActions =
     params.chain.id === base.id
       ? baseSplitPluginActions
+      : params.chain.id === baseSepolia.id ?
+      baseSepoliaSplitPluginActions
       : sepoliaSplitPluginActions;
   const splitLockerClient = await lockerClient.extend(splitPluginActions);
   const chainId = params.chain.id;

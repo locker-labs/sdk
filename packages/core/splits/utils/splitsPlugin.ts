@@ -30,7 +30,7 @@ import {
   type Plugin,
   type FunctionReference,
 } from "@account-kit/smart-contracts";
-import { MultiOwnerPlugin } from "./multiPlugin";
+import { MultiOwnerPlugin } from "./multiPlugin.js";
 
 type ExecutionActions<
   TAccount extends SmartContractAccount | undefined =
@@ -55,11 +55,11 @@ type ExecutionActions<
       GetContextParameter<TContext>
   ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
 
-  automationSwitch: (
+  toggleIsSplitEnabled: (
     args: Pick<
       EncodeFunctionDataParameters<
         typeof SplitPluginExecutionFunctionAbi,
-        "automationSwitch"
+        "toggleIsSplitEnabled"
       >,
       "args"
     > &
@@ -108,7 +108,11 @@ type ExecutionActions<
   ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
 };
 
-type InstallArgs = [];
+type InstallArgs = [
+  { type: "address" },
+  { type: "address[]" },
+  { type: "uint8[]" },
+];
 
 export type InstallSplitPluginParams = {
   args: Parameters<typeof encodeAbiParameters<InstallArgs>>[1];
@@ -145,11 +149,11 @@ type ReadAndEncodeActions = {
     >
   ) => Hex;
 
-  encodeAutomationSwitch: (
+  encodeToggleIsSplitEnabled: (
     args: Pick<
       EncodeFunctionDataParameters<
         typeof SplitPluginExecutionFunctionAbi,
-        "automationSwitch"
+        "toggleIsSplitEnabled"
       >,
       "args"
     >
@@ -198,7 +202,7 @@ export type SplitPluginActions<
   ReadAndEncodeActions;
 
 const addresses = {
-  84532: "0x7AA0c9376178EBC081eAd5C49801C86Ce834D629" as Address,
+  84532: "0x9E663AE3423E334e8F35048D66E3DEaB387C9A0D" as Address,
 } as Record<number, Address>;
 
 export const SplitPlugin: Plugin<typeof SplitPluginAbi> = {
@@ -253,21 +257,21 @@ export const splitPluginActions: <
 
     return client.sendUserOperation({ uo, overrides, account, context });
   },
-  automationSwitch({ args, overrides, context, account = client.account }) {
+  toggleIsSplitEnabled({ args, overrides, context, account = client.account }) {
     if (!account) {
       throw new AccountNotFoundError();
     }
     if (!isSmartAccountClient(client)) {
       throw new IncompatibleClientError(
         "SmartAccountClient",
-        "automationSwitch",
+        "toggleIsSplitEnabled",
         client
       );
     }
 
     const uo = encodeFunctionData({
       abi: SplitPluginExecutionFunctionAbi,
-      functionName: "automationSwitch",
+      functionName: "toggleIsSplitEnabled",
       args,
     });
 
@@ -385,7 +389,10 @@ export const splitPluginActions: <
 
     return installPlugin_(client, {
       pluginAddress,
-      pluginInitData: encodeAbiParameters([], params.args),
+      pluginInitData: encodeAbiParameters(
+        [{ type: "address" }, { type: "address[]" }, { type: "uint8[]" }],
+        params.args
+      ),
       dependencies,
       overrides,
       account,
@@ -399,10 +406,10 @@ export const splitPluginActions: <
       args,
     });
   },
-  encodeAutomationSwitch({ args }) {
+  encodeToggleIsSplitEnabled({ args }) {
     return encodeFunctionData({
       abi: SplitPluginExecutionFunctionAbi,
-      functionName: "automationSwitch",
+      functionName: "toggleIsSplitEnabled",
       args,
     });
   },
@@ -443,7 +450,7 @@ export const SplitPluginExecutionFunctionAbi = [
   },
   {
     type: "function",
-    name: "automationSwitch",
+    name: "toggleIsSplitEnabled",
     inputs: [
       { name: "_configIndex", type: "uint256", internalType: "uint256" },
     ],
@@ -502,15 +509,6 @@ export const SplitPluginAbi = [
     inputs: [],
     outputs: [{ name: "", type: "string", internalType: "string" }],
     stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "automationSwitch",
-    inputs: [
-      { name: "_configIndex", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -928,7 +926,7 @@ export const SplitPluginAbi = [
     inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     outputs: [
       { name: "tokenAddress", type: "address", internalType: "address" },
-      { name: "automationEnabled", type: "bool", internalType: "bool" },
+      { name: "isSplitEnabled", type: "bool", internalType: "bool" },
     ],
     stateMutability: "view",
   },
@@ -938,6 +936,15 @@ export const SplitPluginAbi = [
     inputs: [{ name: "interfaceId", type: "bytes4", internalType: "bytes4" }],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "toggleIsSplitEnabled",
+    inputs: [
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -1066,4 +1073,3 @@ export const SplitPluginAbi = [
   },
   { type: "error", name: "NotInitialized", inputs: [] },
 ] as const;
-

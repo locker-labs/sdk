@@ -3,7 +3,7 @@ import {
   type LockerClientParams,
   type LockerClient,
 } from "accounts";
-import { encodeAbiParameters, type Address } from "viem";
+import { type Address } from "viem";
 import { splitPluginActions } from "./utils/splitsPlugin";
 import { isSplitPluginInstalled } from "./utils/helpers";
 import { SPLIT_PLUGIN_ADDRESS } from "./def/splitPluginConfig";
@@ -21,7 +21,7 @@ export interface LockerSplitClient extends LockerClient {
   ) => Promise<any>;
   isSplitsPluginInstalled: () => Promise<boolean>;
   uninstallSplitPlugin: () => Promise<any>;
-  pauseAutomation: (configIndex: number) => Promise<any>;
+  toggleAutomation: (configIndex: number) => Promise<any>;
   split: (configIndex: number) => Promise<any>;
   deleteSplit: (configIndex: number) => Promise<any>;
 }
@@ -64,12 +64,8 @@ export async function createLockerSplitClient(
         console.log("Split plugin already installed.");
         return null;
       }
-      const callData = encodeAbiParameters(
-        [{ type: "address" }, { type: "address[]" }, { type: "uint8[]" }],
-        [tokenAddress, receiverAddresses, percentage]
-      );
       const res = await splitsLockerClient.installSplitPlugin({
-        args: [callData],
+        args: [tokenAddress, receiverAddresses, percentage],
       });
       return res;
     },
@@ -86,7 +82,7 @@ export async function createLockerSplitClient(
       });
       return res;
     },
-    async pauseAutomation(configIndex: number): Promise<any> {
+    async toggleAutomation(configIndex: number): Promise<any> {
       if (!(await isSplitPluginInstalled(splitsLockerClient))) {
         console.log("Split plugin not installed.");
         return null;

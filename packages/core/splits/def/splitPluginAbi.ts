@@ -22,15 +22,6 @@ export const SplitPluginAbi = [
   },
   {
     type: "function",
-    name: "automationSwitch",
-    inputs: [
-      { name: "_configIndex", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
     name: "createSplit",
     inputs: [
       { name: "_tokenAddress", type: "address", internalType: "address" },
@@ -445,7 +436,7 @@ export const SplitPluginAbi = [
     inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     outputs: [
       { name: "tokenAddress", type: "address", internalType: "address" },
-      { name: "automationEnabled", type: "bool", internalType: "bool" },
+      { name: "isSplitEnabled", type: "bool", internalType: "bool" },
     ],
     stateMutability: "view",
   },
@@ -455,6 +446,15 @@ export const SplitPluginAbi = [
     inputs: [{ name: "interfaceId", type: "bytes4", internalType: "bytes4" }],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "toggleIsSplitEnabled",
+    inputs: [
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
     type: "function",

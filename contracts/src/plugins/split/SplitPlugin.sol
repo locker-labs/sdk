@@ -163,17 +163,7 @@ contract SplitPlugin is BasePlugin {
         return isCreator;
     }
 
-    function onInstall(bytes calldata _data) external override {
-        if (_data.length == 0) {
-            return;
-        }
-        // Decode callData expecting: (address tokenAddress, address[] splitAddresses, uint8[] percentages)
-        (address tokenAddress, address[] memory splitAddresses, uint8[] memory percentages) =
-            abi.decode(_data, (address, address[], uint8[]));
-
-        // Call the createSplit function to set up the split configuration
-        this.createSplit(tokenAddress, splitAddresses, percentages);
-    }
+    function onInstall(bytes calldata _data) external pure override {}
 
     function onUninstall(bytes calldata) external override {}
 

@@ -40,7 +40,7 @@ contract SplitPlugin is BasePlugin {
         address tokenAddress; // tokenAddress to be split
         address[] splitAddresses; // receiver addresses of the split
         uint8[] percentages; // respective percentages of each splitAddress
-        bool automationEnabled; // execute split in postExec hook
+        bool isSplitEnabled; // execute split in postExec hook
     }
 
     event SplitConfigCreated(address indexed user, uint256 indexed configIndex);
@@ -90,11 +90,11 @@ contract SplitPlugin is BasePlugin {
     }
 
     /// @dev Pauses the automation for the given split config
-    function automationSwitch(uint256 _configIndex) external {
+    function toggleIsSplitEnabled(uint256 _configIndex) external {
         require(isSplitCreator(_configIndex, msg.sender),"SplitPlugin: Invalid pauseAutomation request");
         SplitConfig storage config = splitConfigs[_configIndex];
-        bool automationState = config.automationEnabled;
-        config.automationEnabled = !automationState;
+        bool automationState = config.isSplitEnabled;
+        config.isSplitEnabled = !automationState;
 
         emit AutomationSwitched(_configIndex, !automationState);
     }
@@ -104,7 +104,7 @@ contract SplitPlugin is BasePlugin {
         SplitConfig memory config = splitConfigs[_configIndex];
         IERC20 token = IERC20(config.tokenAddress);
         uint256 totalSplitAmount = token.balanceOf(address(msg.sender));
-        if(!config.automationEnabled || totalSplitAmount < 100) {
+        if(!config.isSplitEnabled || totalSplitAmount < 100) {
             return;
         }
 
@@ -216,7 +216,7 @@ contract SplitPlugin is BasePlugin {
         // List the execution functions provided by this plugin.
         manifest.executionFunctions = new bytes4[](5);
         manifest.executionFunctions[0] = this.createSplit.selector;
-        manifest.executionFunctions[1] = this.automationSwitch.selector;
+        manifest.executionFunctions[1] = this.toggleIsSplitEnabled.selector;
         manifest.executionFunctions[2] = this.split.selector;
         manifest.executionFunctions[3] = this.updateSplitConfig.selector;
         manifest.executionFunctions[4] = this.deleteSplitConfig.selector;
@@ -233,7 +233,7 @@ contract SplitPlugin is BasePlugin {
             })
         });
         manifest.userOpValidationFunctions[1] = ManifestAssociatedFunction({
-            executionSelector: this.automationSwitch.selector,
+            executionSelector: this.toggleIsSplitEnabled.selector,
             associatedFunction: ManifestFunction({
                 functionType: ManifestAssociatedFunctionType.DEPENDENCY,
                 functionId: 0, 

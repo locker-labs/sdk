@@ -138,6 +138,10 @@ export async function cctpReceiveTokenFromSolana(
         message,
         recipientChain,
     } = cctpResponse;
+    console.log('CCTP receive token from Solana...');
+    console.log('Attestation:', attestation);
+    console.log('Message:', message);
+    console.log('Recipient chain:', recipientChain);
 
     const messageTransmitter = getMessageTransmitterFromChain(recipientChain);
 

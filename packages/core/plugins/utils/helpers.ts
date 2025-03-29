@@ -6,6 +6,7 @@ async function isSplitPluginInstalled(
 ): Promise<boolean> {
   const splitPluginAddress = chainToSplitPluginAddress[chainId];
   const installedPlugins = await extendedAccount.getInstalledPlugins({});
+  console.log('Installed plugins:', installedPlugins);
   if (!installedPlugins.includes(splitPluginAddress)) {
     return false;
   }

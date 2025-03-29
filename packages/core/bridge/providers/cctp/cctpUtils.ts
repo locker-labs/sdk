@@ -148,10 +148,10 @@ export function getMessageTransmitterFromChain(chain: EChain) {
         throw new Error(`Unsupported chain: ${chain}`);
     }
 
+    const address = CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER[chain] as Address;
+    console.log('Message transmitter address:', address);
     return {
         abi: evmMessageTransmitterAbi,
-        address: CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER[chain] as Address,
+        address,
     }
-
-    throw new Error(`Unsupported chain: ${chain}`);
 }

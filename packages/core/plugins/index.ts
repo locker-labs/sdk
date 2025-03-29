@@ -1,18 +1,21 @@
 import {
   createLockerClient,
 } from "../accounts/impl";
-import { type Address } from "viem";
+import { type Address, createPublicClient, http } from "viem";
 import { splitPluginActions as baseSplitPluginActions } from "./gens/base/split/plugin";
 import { splitPluginActions as sepoliaSplitPluginActions } from "./gens/sepolia/split/plugin";
 import { splitPluginActions as baseSepoliaSplitPluginActions } from "./gens/baseSepolia/split/plugin";
 import { isSplitPluginInstalled } from "./utils/helpers";
 import { chainToSplitPluginAddress } from "./defs/split/config";
 import { base, baseSepolia, sepolia } from "@account-kit/infra";
-import { adaptLockerChain2AlchemyChain, waitForTransaction } from '../helpers';
+import { adaptLockerChain2AlchemyChain, waitForTransaction } from "../helpers";
+import { SplitPluginAbi } from "./defs/split/abi";
 import type { ILockerClient, ILockerClientParams } from "accounts/types";
 
 export interface ILockerSplitClient extends ILockerClient {
   getAddress: () => Address;
+
+  getConfigs: () => Promise<bigint[]>;
 
   createSplit: (
     tokenAddress: Address,
@@ -30,7 +33,7 @@ export interface ILockerSplitClient extends ILockerClient {
 
   split: (configIndex: number) => Promise<any>;
 
-  deleteSplit: (configIndex: number) => Promise<any>;
+  deleteSplit: (configIndex: bigint) => Promise<any>;
 }
 
 /**
@@ -67,9 +70,37 @@ export async function createLockerSplitClient(
   const splitLockerClient = await lockerClient.extend(splitPluginActions);
   const alchemyRpcUrl = `${chain.rpcUrls.alchemy.http[0]}/${alchemyApiKey}`;
 
+  const client = createPublicClient({
+    chain,
+    transport: http(alchemyRpcUrl),
+  });
+
   return {
     ...lockerClient,
-
+    async getConfigs(): Promise<bigint[]> {
+      if (!(await isSplitPluginInstalled(splitLockerClient, chainId))) {
+        console.log("Split plugin not installed.");
+        return [];
+      }
+      const globalIndexes = [];
+      // Get all the global indexes, Max possible 5.
+      // TODO: Replace with a query.
+      for (let i = 0; i < 5; i++) {
+        let globalIndex;
+        try {
+          globalIndex = await client.readContract({
+            address: chainToSplitPluginAddress[chain.id],
+            abi: SplitPluginAbi,
+            functionName: "splitConfigIndexes",
+            args: [await splitLockerClient.getAddress(), BigInt(i)],
+          });
+          globalIndexes.push(globalIndex);
+        } catch {
+          break;
+        }
+      }
+      return globalIndexes;
+    },
     async createSplit(
       tokenAddress: string,
       percentage: number[],
@@ -144,13 +175,27 @@ export async function createLockerSplitClient(
       return res;
     },
 
-    async deleteSplit(configIndex: number): Promise<any> {
+    async deleteSplit(configIndex: bigint): Promise<any> {
       if (!(await isSplitPluginInstalled(splitLockerClient, chainId))) {
         console.log("Split plugin not installed.");
         return null;
       }
+
+      const isSplitCreator = await client.readContract({
+        address: chainToSplitPluginAddress[chain.id],
+        abi: SplitPluginAbi,
+        functionName: "isSplitCreator",
+        args: [configIndex, await splitLockerClient.getAddress()],
+      });
+      if (!isSplitCreator) {
+        console.log(
+          "You are not the creator of this split config:",
+          Number(configIndex)
+        );
+        return null;
+      }
       const res = await splitLockerClient.deleteSplitConfig({
-        args: [BigInt(configIndex)],
+        args: [configIndex],
       });
       console.log("Waiting for deletion confirmation...");
       await waitForTransaction(res.hash, alchemyRpcUrl);

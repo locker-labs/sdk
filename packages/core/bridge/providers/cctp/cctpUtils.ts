@@ -13,7 +13,7 @@ import { CCTP_DOMAIN_IDS, CCTP_EVM_CONTRACTS } from './cctpConstants';
 import type { IBridgeFromSolanaParams } from "../../types";
 import * as evmMessageTransmitterAbi from './abi/evm/message_transmitter.json';
 import type { Address } from "viem";
-import type { EChain } from "tokens";
+import { EChain } from "tokens";
 
 /**
  * Returns the Anchor programs for MessageTransmitter + TokenMessengerMinter.
@@ -143,22 +143,15 @@ export async function findOrCreateUserTokenAccount(
     }
 }
 
-export function getMessageTransmitterFromChain(chain: string) {
-    if (chain === 'base') {
-        return {
-            abi: evmMessageTransmitterAbi,
-            address: CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER.base as Address,
-        }
-    } else if (chain === 'baseSepolia') {
-        return {
-            abi: evmMessageTransmitterAbi,
-            address: CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER.baseSepolia as Address,
-        }
-    } else if (chain === 'ethereumSepolia') {
-        return {
-            abi: evmMessageTransmitterAbi,
-            address: CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER.ethereumSepolia as Address,
-        }
+export function getMessageTransmitterFromChain(chain: EChain) {
+    if (chain === EChain.SOLANA || chain === EChain.SOLANA_DEVNET) {
+        throw new Error(`Unsupported chain: ${chain}`);
     }
+
+    return {
+        abi: evmMessageTransmitterAbi,
+        address: CCTP_EVM_CONTRACTS.V1.MESSAGE_TRANSMITTER[chain] as Address,
+    }
+
     throw new Error(`Unsupported chain: ${chain}`);
 }

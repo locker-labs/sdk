@@ -43,10 +43,8 @@ if (!alchemyApiKey) {
 
 // Bridge config
 const sourceChain = EChain.SOLANA_DEVNET;
-const sourceChainToken = USDC[sourceChain];
+const recipientChain = EChain.SEPOLIA;
 const usdcAmount = 100; // 0.01 USDC
-const recipientChain = EChain.BASE_SEPOLIA;
-const bridgeName: IBridgeName = "cctp";
 
 // Split config
 const splitRecipients = [
@@ -55,11 +53,13 @@ const splitRecipients = [
 ] as Address[];
 const splitPercentages = [95, 5];
 
-const recipientChainToken = USDC.baseSepolia as Address;
-
 /*
  * Implementation
  */
+
+const sourceChainToken = USDC[sourceChain];
+const recipientChainToken = USDC[recipientChain] as Address;
+const bridgeName: IBridgeName = "cctp";
 
 // Create a Locker Client
 const splitClient = await createLockerSplitClient({
@@ -73,17 +73,18 @@ const recipientAddress = splitClient.getAddress();
 console.log(`Recipient address: ${recipientAddress}`);
 
 // One time connfiguration of Locker Client
-// const pluginInstalled = await splitClient.isSplitPluginInstalled();
-// if (!pluginInstalled) {
-//   console.log("Installing Split Plugin");
-//   // 1. install Split Plugin
-//   await splitClient.installSplitPlugin();
+const pluginInstalled = await splitClient.isSplitPluginInstalled();
+if (!pluginInstalled) {
+  // 1. install Split Plugin
+  console.log("Installing Split Plugin");
+  await splitClient.installSplitPlugin();
 
-//   // 2. create split config
-//   await splitClient.createSplit(recipientChainToken, splitPercentages, splitRecipients);
-// } else {
-//   console.log("Split Plugin already installed");
-// }
+  // 2. create split config
+  console.log("Creating split config");
+  await splitClient.createSplit(recipientChainToken, splitPercentages, splitRecipients);
+} else {
+  console.log("Split Plugin already installed");
+}
 
 // CCTP to transfer from Solana to Base
 const solanaPrivateKeyUint8Array = bs58.decode(solanaPrivateKeyB58);
@@ -106,9 +107,7 @@ const params = {
 };
 
 // Bridge and Receive token from Solana
-const response = await cctpBridgeTokenFromSolana(params);
-// const response = await bridgeAndReceiveTokenFromSolana(params);
-// TODO: merge params into one
+const response = await bridgeAndReceiveTokenFromSolana(params);
 console.log(`Received token from ${sourceChain} on ${recipientChain}:`);
 console.log(response);
 

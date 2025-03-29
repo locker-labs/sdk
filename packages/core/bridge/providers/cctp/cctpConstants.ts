@@ -47,9 +47,9 @@ export const CIRCLE_CONFIG: Record<EChain, {
 export const CCTP_EVM_CONTRACTS = {
     V1: {
         MESSAGE_TRANSMITTER: {
-            base: "0xAD09780d193884d503182aD4588450C416D6F9D4",
-            baseSepolia: "0x7865fAfC2db2093669d92c0F33AeEF291086BEFD",
-            ethereumSepolia: "0x7865fAfC2db2093669d92c0F33AeEF291086BEFD",
+            [EChain.BASE]: "0xAD09780d193884d503182aD4588450C416D6F9D4",
+            [EChain.BASE_SEPOLIA]: "0x7865fAfC2db2093669d92c0F33AeEF291086BEFD",
+            [EChain.SEPOLIA]: "0x7865fAfC2db2093669d92c0F33AeEF291086BEFD",
         }
     }
 }

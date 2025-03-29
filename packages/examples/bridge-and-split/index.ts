@@ -63,9 +63,12 @@ const bridgeName: IBridgeName = "cctp";
 
 // Create a Locker Client
 const splitClient = await createLockerSplitClient({
+  salt: BigInt(1),
   alchemyApiKey,
   chain: recipientChain,
-  signer: LocalAccountSigner.privateKeyToAccountSigner(evmPrivateKey as Address),
+  signer: LocalAccountSigner.privateKeyToAccountSigner(
+    evmPrivateKey as Address
+  ),
 });
 
 // Get address for the Locker Client. This is the address that will receive the token then split it.
@@ -73,7 +76,6 @@ const recipientAddress = splitClient.getAddress();
 console.log(`Recipient address: ${recipientAddress}`);
 
 async function bridgeAndSplit() {
-
   // One time connfiguration of Locker Client
   const pluginInstalled = await splitClient.isSplitPluginInstalled();
   if (!pluginInstalled) {
@@ -83,7 +85,11 @@ async function bridgeAndSplit() {
 
     // 2. create split config
     console.log("Creating split config");
-    await splitClient.createSplit(recipientChainToken, splitPercentages, splitRecipients);
+    await splitClient.createSplit(
+      recipientChainToken,
+      splitPercentages,
+      splitRecipients
+    );
   } else {
     console.log("Split Plugin already installed");
   }
@@ -115,8 +121,12 @@ async function bridgeAndSplit() {
 }
 
 async function cleanup() {
-  // Cleanup: uninstall split plugin and delete split config
-  await splitClient.deleteSplit(0);
+  // Cleanup: uninstall split plugin and delete split configs
+  const configIndexes = await splitClient.getConfigs();
+  for (const index of configIndexes) {
+    await splitClient.deleteSplit(index);
+  }
+
   await splitClient.uninstallSplitPlugin();
 }
 

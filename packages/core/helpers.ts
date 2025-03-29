@@ -1,82 +1,79 @@
-const alchemyRpcUrl = process.env.ALCHEMY_RPC_URL!;
-
-const getUserOperationByHash = async (userOpHash: string) => {
-    const headers = {
-      accept: "application/json",
-      "content-type": "application/json",
-    };
-
-    const body = JSON.stringify({
-      id: 1,
-      jsonrpc: "2.0",
-      method: "eth_getUserOperationByHash",
-      params: [userOpHash],
-    });
-
-    try {
-      const response = await fetch(alchemyRpcUrl, {
-        method: "POST",
-        headers: headers,
-        body: body,
-      });
-      const data: any = await response.json();
-      console.log({ data });
-      return data?.result?.transactionHash;
-    } catch (e) {
-      console.error(e);
-    }
+const getUserOperationByHash = async (userOpHash: string, alchemyRpcUrl: string) => {
+  const headers = {
+    accept: "application/json",
+    "content-type": "application/json",
   };
 
-  async function getTransactionReceipt(txHash: string) {
-    const headers = {
-      accept: "application/json",
-      "content-type": "application/json",
-    };
+  const body = JSON.stringify({
+    id: 1,
+    jsonrpc: "2.0",
+    method: "eth_getUserOperationByHash",
+    params: [userOpHash],
+  });
 
-    const body = JSON.stringify({
-      id: 1,
-      jsonrpc: "2.0",
-      method: "eth_getTransactionReceipt",
-      params: [txHash],
+  try {
+    const response = await fetch(alchemyRpcUrl, {
+      method: "POST",
+      headers: headers,
+      body: body,
+    });
+    const data: any = await response.json();
+    return data?.result?.transactionHash;
+  } catch (e) {
+    console.error(e);
+  }
+};
+
+async function getTransactionReceipt(txHash: string, alchemyRpcUrl: string) {
+  const headers = {
+    accept: "application/json",
+    "content-type": "application/json",
+  };
+
+  const body = JSON.stringify({
+    id: 1,
+    jsonrpc: "2.0",
+    method: "eth_getTransactionReceipt",
+    params: [txHash],
+  });
+
+  try {
+    const response = await fetch(alchemyRpcUrl, {
+      method: "POST",
+      headers: headers,
+      body: body,
     });
 
-    try {
-      const response = await fetch(alchemyRpcUrl, {
-        method: "POST",
-        headers: headers,
-        body: body,
-      });
+    const data: any = await response.json();
+    return data?.result;
+  } catch (error) {
+    console.error("Error:", error);
+  }
+}
 
-      const data: any = await response.json();
-      return data?.result;
-    } catch (error) {
-      console.error("Error:", error);
+export const waitForTransaction = async (userOpHash: string, alchemyRpcUrl: string) => {
+  console.log("Waiting for userOp confirmation...");
+
+  let txHash;
+
+  while (!txHash) {
+    txHash = await getUserOperationByHash(userOpHash, alchemyRpcUrl);
+    if (txHash) {
+      console.log("txHash:", txHash);
+      break;
     }
+    await new Promise((resolve) => setTimeout(resolve, 3000)); // Wait for 3 seconds before retrying
   }
 
-export const waitForTransaction = async (userOpHash: string) => {
+  let txReceipt;
+  console.log("Waiting for tx confirmation...");
 
-    let txHash;
-
-    while (!txHash) {
-      txHash = await getUserOperationByHash(userOpHash);
-      if (txHash) {
-        console.log("txHash:", txHash);
-        break;
-      }
-      console.log("Waiting for txHash...");
-      await new Promise((resolve) => setTimeout(resolve, 3000)); // Wait for 3 seconds before retrying
+  while (!txReceipt) {
+    txReceipt = await getTransactionReceipt(txHash, alchemyRpcUrl);
+    if (txReceipt) {
+      console.log("Receipt:", txReceipt);
+      break;
     }
-
-    let txReceipt;
-
-    while (!txReceipt) {
-      txReceipt = await getTransactionReceipt(txHash);
-      if (txReceipt) {
-        console.log("Receipt:", txReceipt);
-        break;
-      }
-      console.log("Waiting for txReceipt...");
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
-    }
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
+  }
 }

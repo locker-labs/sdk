@@ -16,7 +16,7 @@ import {
   zora,
   zoraSepolia,
 } from "viem/chains";
-import { MultiOwnerPluginAbi } from "./multiOwnerAbi";
+import { MultiOwnerPluginAbi } from "./abi";
 
 export const MultiOwnerPluginGenConfig: PluginConfig = {
   name: "MultiOwnerPlugin",

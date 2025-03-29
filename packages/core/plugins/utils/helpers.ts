@@ -1,4 +1,4 @@
-import { chainToSplitPluginAddress } from "../def/splitPluginConfig";
+import { chainToSplitPluginAddress } from "../defs/split/config";
 
 async function isSplitPluginInstalled(
   extendedAccount: any,

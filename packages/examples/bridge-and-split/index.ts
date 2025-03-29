@@ -1,7 +1,7 @@
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
 import { type Address } from "viem";
-import { baseSepolia } from "@account-kit/infra";
+import { baseSepolia, sepolia } from "@account-kit/infra";
 import { LocalAccountSigner } from "@aa-sdk/core";
 import {
   bridgeAndReceiveTokenFromSolana,
@@ -10,6 +10,9 @@ import {
   type IBridgeName,
   type ISolanaNetwork,
 } from "@locker-labs/sdk";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 /*
  * Load environment variables
@@ -29,49 +32,57 @@ if (!evmPrivateKey) {
   throw new Error("EVM_PRIVATE_KEY is not set");
 }
 
-const lockerApiKey = process.env.LOCKER_API_KEY;
-if (!lockerApiKey) {
-  throw new Error("LOCKER_API_KEY is not set");
+const alchemyApiKey = process.env.ALCHEMY_API_KEY;
+if (!alchemyApiKey) {
+  throw new Error("ALCHEMY_API_KEY is not set");
 }
 
 /*
  * Runtime configs
  */
+
+// Bridge config
 const solanaNetwork: ISolanaNetwork = "devnet";
-const usdcMintAddress = USDC.solana!.devnet;
+const usdcSourceChain = USDC.solanaDevnet;
 const usdcAmount = 1000000; // 1 USDC
-const recipientChain = "baseSepolia";
+const recipientChain = sepolia;
 const bridgeName: IBridgeName = "cctp";
 
-// Create a locker split client.
-const splitClient = await createLockerSplitClient({
-  apiKey: lockerApiKey,
-  chain: baseSepolia,
-  signer: LocalAccountSigner.privateKeyToAccountSigner(evmPrivateKey as Address),
-});
-
-// @ts-ignore
-const recipientAddress = splitClient.address();
-console.log("Recipient address:", recipientAddress);
-
-// Split config for plugin installation (one time)
+// Split config
 const splitRecipients = [
   "0xCDcf770C605CFdb2069439361Ef59b85500E835b",
   "0xB451c8d5F91324406629da69fDDEDd2bF96A71AB"
-  // "0xFffffffffffffffffffffffffffffffffffffffff",
-  // "0xFffffffffffffffffffffffffffffffffffffffff",
 ] as Address[];
 const splitPercentages = [95, 5];
 
+const recipientChainToken = USDC.baseSepolia as Address;
+
+/*
+ * Implementation
+ */
+
+// Create a Locker Client
+const splitClient = await createLockerSplitClient({
+  alchemyApiKey,
+  chain: recipientChain,
+  signer: LocalAccountSigner.privateKeyToAccountSigner(evmPrivateKey as Address),
+});
+
+// Get address for the Locker Client. This is the address that will receive the token then split it.
+const recipientAddress = splitClient.getAddress();
+console.log(`Recipient address: ${recipientAddress}`);
+
+// One time connfiguration of Locker Client
 const pluginInstalled = await splitClient.isSplitPluginInstalled();
-console.log({pluginInstalled});
 if (!pluginInstalled) {
-  // ONE TIME SETUP
-  // 1. install split plugin
-  const res = await splitClient.installSplitPlugin();
+  console.log("Installing Split Plugin");
+  // 1. install Split Plugin
+  await splitClient.installSplitPlugin();
 
   // 2. create split config
-  const res2 = await splitClient.createSplit(USDC.base!.devnet as Address, splitPercentages, splitRecipients);
+  await splitClient.createSplit(recipientChainToken, splitPercentages, splitRecipients);
+} else {
+  console.log("Split Plugin already installed");
 }
 
 // CCTP to transfer from Solana to Base
@@ -87,19 +98,23 @@ console.log(
   recipientAddress
 );
 
-const params = {
-  solanaSigner,
-  solanaTokenAddress: usdcMintAddress,
-  amount: usdcAmount,
-  recipientChain,
-  recipientAddress,
-  bridgeName,
-  solanaNetwork,
-  solanaRpcUrl,
-};
+// const params = {
+//   solanaSigner,
+//   solanaTokenAddress: usdcSourceChain,
+//   amount: usdcAmount,
+//   recipientChain,
+//   recipientAddress,
+//   bridgeName,
+//   solanaNetwork,
+//   solanaRpcUrl,
+// };
 
-// Bridge and Receive token from Solana
-const response = await bridgeAndReceiveTokenFromSolana(params, splitClient);
-// TODO: merge params into one
-console.log(`Received token from Solana on ${recipientChain}:`);
-console.log(response);
+// // Bridge and Receive token from Solana
+// const response = await bridgeAndReceiveTokenFromSolana(params, splitClient);
+// // TODO: merge params into one
+// console.log(`Received token from Solana on ${recipientChain}:`);
+// console.log(response);
+
+// Cleanup: uninstall split plugin and delete split config
+await splitClient.deleteSplit(0);
+await splitClient.uninstallSplitPlugin();

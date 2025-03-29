@@ -30,7 +30,7 @@ import {
   type Plugin,
   type FunctionReference,
 } from "@account-kit/smart-contracts";
-import { MultiOwnerPlugin } from "../../multiPlugin.js";
+import { MultiOwnerPlugin } from "../multi-owner/plugin.js";
 
 type ExecutionActions<
   TAccount extends SmartContractAccount | undefined =

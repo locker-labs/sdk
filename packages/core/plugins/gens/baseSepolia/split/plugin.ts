@@ -30,7 +30,7 @@ import {
   type Plugin,
   type FunctionReference,
 } from "@account-kit/smart-contracts";
-import { MultiOwnerPlugin } from "../../multiPlugin.js";
+import { MultiOwnerPlugin } from "../multi-owner/plugin.js";
 
 type ExecutionActions<
   TAccount extends SmartContractAccount | undefined =
@@ -199,6 +199,7 @@ export type SplitPluginActions<
 
 const addresses = {
   8453: "0x981656a00aB861498E2DCE2a94b1dd416B684844" as Address,
+  84532: "0x9fBc03780c1AAc814E6BAD2C35Af4f55fCb31D69" as Address,
   11155111: "0x1ef5f1E4d06AD60e9A3FD64D00782c21523F7317" as Address,
 } as Record<number, Address>;
 

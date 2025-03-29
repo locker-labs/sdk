@@ -1,49 +1,5 @@
-import type { LockerSplitClient } from 'split';
-import { cctpBridgeTokenFromSolana, cctpReceiveTokenFromSolana, type ICctpBridgeFromSolanaResponse } from './providers/cctp/cctpBridge';
-import type { IBridgeFromSolanaParams, IBridgeFromSolanaResponse, IBridgeName } from './types';
-
-/**
- * Bridges a token from Solana to another chain.
- */
-export async function bridgeTokenFromSolana(bridgeFromSolanaParams: IBridgeFromSolanaParams): Promise<IBridgeFromSolanaResponse> {
-    const { bridgeName } = bridgeFromSolanaParams;
-    if (bridgeName === 'cctp') {
-        return cctpBridgeTokenFromSolana(bridgeFromSolanaParams);
-    }
-
-    throw new Error(`Unsupported bridge: ${bridgeName}`);
-}
-
-/**
- * Receives a token bridged from Solana to another chain.
- */
-export async function receiveTokenFromSolana(
-    bridgeName: IBridgeName,
-    bridgeFromSolanaResponse: IBridgeFromSolanaResponse,
-    splitsClient: LockerSplitClient,
-) {
-    if (bridgeName === 'cctp') {
-        return cctpReceiveTokenFromSolana(bridgeFromSolanaResponse as ICctpBridgeFromSolanaResponse, splitsClient);
-    }
-
-    throw new Error(`Unsupported bridge: ${bridgeName}`);
-}
-
-/**
- * Bridges a token from Solana and receives on destination chain.
- */
-export async function bridgeAndReceiveTokenFromSolana(
-    bridgeFromSolanaParams: IBridgeFromSolanaParams,
-    splitsClient: LockerSplitClient,
-) {
-    const { bridgeName } = bridgeFromSolanaParams;
-
-    if (bridgeName === 'cctp') {
-        const response: ICctpBridgeFromSolanaResponse = await cctpBridgeTokenFromSolana(bridgeFromSolanaParams);
-        console.log('Bridge response:', response);
-
-        return cctpReceiveTokenFromSolana(response, splitsClient);
-    }
-
-    throw new Error(`Unsupported bridge: ${bridgeName}`);
-}
+export * from "./impl";
+export * from "./types";
+export * from "./providers/cctp/cctpBridge";
+export * from "./providers/cctp/cctpConstants";
+export * from "./providers/cctp/cctpUtils";

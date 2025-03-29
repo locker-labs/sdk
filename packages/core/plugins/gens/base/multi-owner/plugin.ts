@@ -1,6 +1,5 @@
 import {
   getContract,
-  encodePacked,
   encodeAbiParameters,
   encodeFunctionData,
   type Address,
@@ -11,6 +10,7 @@ import {
   type EncodeFunctionDataParameters,
   type Chain,
   type Hex,
+  type ReadContractReturnType,
 } from "viem";
 import {
   ChainNotFoundError,
@@ -30,7 +30,6 @@ import {
   type Plugin,
   type FunctionReference,
 } from "@account-kit/smart-contracts";
-import { MultiOwnerPlugin } from "./multiPlugin.js";
 
 type ExecutionActions<
   TAccount extends SmartContractAccount | undefined =
@@ -42,79 +41,23 @@ type ExecutionActions<
   TEntryPointVersion extends
     GetEntryPointFromAccount<TAccount> = GetEntryPointFromAccount<TAccount>,
 > = {
-  createSplit: (
+  updateOwners: (
     args: Pick<
       EncodeFunctionDataParameters<
-        typeof SplitPluginExecutionFunctionAbi,
-        "createSplit"
+        typeof MultiOwnerPluginExecutionFunctionAbi,
+        "updateOwners"
       >,
       "args"
     > &
       UserOperationOverridesParameter<TEntryPointVersion> &
       GetAccountParameter<TAccount> &
-      GetContextParameter<TContext>
-  ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
-
-  toggleIsSplitEnabled: (
-    args: Pick<
-      EncodeFunctionDataParameters<
-        typeof SplitPluginExecutionFunctionAbi,
-        "toggleIsSplitEnabled"
-      >,
-      "args"
-    > &
-      UserOperationOverridesParameter<TEntryPointVersion> &
-      GetAccountParameter<TAccount> &
-      GetContextParameter<TContext>
-  ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
-
-  split: (
-    args: Pick<
-      EncodeFunctionDataParameters<
-        typeof SplitPluginExecutionFunctionAbi,
-        "split"
-      >,
-      "args"
-    > &
-      UserOperationOverridesParameter<TEntryPointVersion> &
-      GetAccountParameter<TAccount> &
-      GetContextParameter<TContext>
-  ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
-
-  updateSplitConfig: (
-    args: Pick<
-      EncodeFunctionDataParameters<
-        typeof SplitPluginExecutionFunctionAbi,
-        "updateSplitConfig"
-      >,
-      "args"
-    > &
-      UserOperationOverridesParameter<TEntryPointVersion> &
-      GetAccountParameter<TAccount> &
-      GetContextParameter<TContext>
-  ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
-
-  deleteSplitConfig: (
-    args: Pick<
-      EncodeFunctionDataParameters<
-        typeof SplitPluginExecutionFunctionAbi,
-        "deleteSplitConfig"
-      >,
-      "args"
-    > &
-      UserOperationOverridesParameter<TEntryPointVersion> &
-      GetAccountParameter<TAccount> &
-      GetContextParameter<TContext>
+      GetContextParameter<TContext>,
   ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
 };
 
-type InstallArgs = [
-  { type: "address" },
-  { type: "address[]" },
-  { type: "uint8[]" },
-];
+type InstallArgs = [{ type: "address[]" }];
 
-export type InstallSplitPluginParams = {
+export type InstallMultiOwnerPluginParams = {
   args: Parameters<typeof encodeAbiParameters<InstallArgs>>[1];
   pluginAddress?: Address;
   dependencyOverrides?: FunctionReference[];
@@ -130,67 +73,76 @@ type ManagementActions<
   TEntryPointVersion extends
     GetEntryPointFromAccount<TAccount> = GetEntryPointFromAccount<TAccount>,
 > = {
-  installSplitPlugin: (
+  installMultiOwnerPlugin: (
     args: UserOperationOverridesParameter<TEntryPointVersion> &
-      InstallSplitPluginParams &
+      InstallMultiOwnerPluginParams &
       GetAccountParameter<TAccount> &
-      GetContextParameter<TContext>
+      GetContextParameter<TContext>,
   ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
 };
 
-type ReadAndEncodeActions = {
-  encodeCreateSplit: (
+type ReadAndEncodeActions<
+  TAccount extends SmartContractAccount | undefined =
+    | SmartContractAccount
+    | undefined,
+> = {
+  encodeUpdateOwners: (
     args: Pick<
       EncodeFunctionDataParameters<
-        typeof SplitPluginExecutionFunctionAbi,
-        "createSplit"
+        typeof MultiOwnerPluginExecutionFunctionAbi,
+        "updateOwners"
       >,
       "args"
-    >
+    >,
   ) => Hex;
 
-  encodeToggleIsSplitEnabled: (
+  encodeEip712Domain: (
     args: Pick<
       EncodeFunctionDataParameters<
-        typeof SplitPluginExecutionFunctionAbi,
-        "toggleIsSplitEnabled"
+        typeof MultiOwnerPluginExecutionFunctionAbi,
+        "eip712Domain"
       >,
       "args"
-    >
+    >,
   ) => Hex;
 
-  encodeSplit: (
+  readEip712Domain: (
+    args: GetAccountParameter<TAccount>,
+  ) => Promise<
+    ReadContractReturnType<
+      typeof MultiOwnerPluginExecutionFunctionAbi,
+      "eip712Domain"
+    >
+  >;
+
+  encodeIsValidSignature: (
     args: Pick<
       EncodeFunctionDataParameters<
-        typeof SplitPluginExecutionFunctionAbi,
-        "split"
+        typeof MultiOwnerPluginExecutionFunctionAbi,
+        "isValidSignature"
       >,
       "args"
-    >
+    >,
   ) => Hex;
 
-  encodeUpdateSplitConfig: (
+  readIsValidSignature: (
     args: Pick<
       EncodeFunctionDataParameters<
-        typeof SplitPluginExecutionFunctionAbi,
-        "updateSplitConfig"
+        typeof MultiOwnerPluginExecutionFunctionAbi,
+        "isValidSignature"
       >,
       "args"
+    > &
+      GetAccountParameter<TAccount>,
+  ) => Promise<
+    ReadContractReturnType<
+      typeof MultiOwnerPluginExecutionFunctionAbi,
+      "isValidSignature"
     >
-  ) => Hex;
-
-  encodeDeleteSplitConfig: (
-    args: Pick<
-      EncodeFunctionDataParameters<
-        typeof SplitPluginExecutionFunctionAbi,
-        "deleteSplitConfig"
-      >,
-      "args"
-    >
-  ) => Hex;
+  >;
 };
 
-export type SplitPluginActions<
+export type MultiOwnerPluginActions<
   TAccount extends SmartContractAccount | undefined =
     | SmartContractAccount
     | undefined,
@@ -199,33 +151,55 @@ export type SplitPluginActions<
     | undefined,
 > = ExecutionActions<TAccount, TContext> &
   ManagementActions<TAccount, TContext> &
-  ReadAndEncodeActions;
+  ReadAndEncodeActions<TAccount>;
 
 const addresses = {
-  84532: "0x9E663AE3423E334e8F35048D66E3DEaB387C9A0D" as Address,
+  1: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  10: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  137: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  252: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  2523: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  8453: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  42161: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  80001: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  80002: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  84532: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  421614: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  7777777: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  11155111: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  11155420: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
+  999999999: "0xcE0000007B008F50d762D155002600004cD6c647" as Address,
 } as Record<number, Address>;
 
-export const SplitPlugin: Plugin<typeof SplitPluginAbi> = {
+export const MultiOwnerPlugin: Plugin<typeof MultiOwnerPluginAbi> = {
   meta: {
-    name: "Locker Split Plugin",
+    name: "Multi Owner Plugin",
     version: "1.0.0",
     addresses,
   },
   getContract: <C extends Client>(
     client: C,
-    address?: Address
-  ): GetContractReturnType<typeof SplitPluginAbi, PublicClient, Address> => {
+    address?: Address,
+  ): GetContractReturnType<
+    typeof MultiOwnerPluginAbi,
+    PublicClient,
+    Address
+  > => {
     if (!client.chain) throw new ChainNotFoundError();
 
     return getContract({
       address: address || addresses[client.chain.id],
-      abi: SplitPluginAbi,
+      abi: MultiOwnerPluginAbi,
       client: client,
-    }) as GetContractReturnType<typeof SplitPluginAbi, PublicClient, Address>;
+    }) as GetContractReturnType<
+      typeof MultiOwnerPluginAbi,
+      PublicClient,
+      Address
+    >;
   },
 };
 
-export const splitPluginActions: <
+export const multiOwnerPluginActions: <
   TTransport extends Transport = Transport,
   TChain extends Chain | undefined = Chain | undefined,
   TAccount extends SmartContractAccount | undefined =
@@ -235,105 +209,29 @@ export const splitPluginActions: <
     | UserOperationContext
     | undefined,
 >(
-  client: Client<TTransport, TChain, TAccount>
-) => SplitPluginActions<TAccount, TContext> = (client) => ({
-  createSplit({ args, overrides, context, account = client.account }) {
+  client: Client<TTransport, TChain, TAccount>,
+) => MultiOwnerPluginActions<TAccount, TContext> = (client) => ({
+  updateOwners({ args, overrides, context, account = client.account }) {
     if (!account) {
       throw new AccountNotFoundError();
     }
     if (!isSmartAccountClient(client)) {
       throw new IncompatibleClientError(
         "SmartAccountClient",
-        "createSplit",
-        client
+        "updateOwners",
+        client,
       );
     }
 
     const uo = encodeFunctionData({
-      abi: SplitPluginExecutionFunctionAbi,
-      functionName: "createSplit",
+      abi: MultiOwnerPluginExecutionFunctionAbi,
+      functionName: "updateOwners",
       args,
     });
 
     return client.sendUserOperation({ uo, overrides, account, context });
   },
-  toggleIsSplitEnabled({ args, overrides, context, account = client.account }) {
-    if (!account) {
-      throw new AccountNotFoundError();
-    }
-    if (!isSmartAccountClient(client)) {
-      throw new IncompatibleClientError(
-        "SmartAccountClient",
-        "toggleIsSplitEnabled",
-        client
-      );
-    }
-
-    const uo = encodeFunctionData({
-      abi: SplitPluginExecutionFunctionAbi,
-      functionName: "toggleIsSplitEnabled",
-      args,
-    });
-
-    return client.sendUserOperation({ uo, overrides, account, context });
-  },
-  split({ args, overrides, context, account = client.account }) {
-    if (!account) {
-      throw new AccountNotFoundError();
-    }
-    if (!isSmartAccountClient(client)) {
-      throw new IncompatibleClientError("SmartAccountClient", "split", client);
-    }
-
-    const uo = encodeFunctionData({
-      abi: SplitPluginExecutionFunctionAbi,
-      functionName: "split",
-      args,
-    });
-
-    return client.sendUserOperation({ uo, overrides, account, context });
-  },
-  updateSplitConfig({ args, overrides, context, account = client.account }) {
-    if (!account) {
-      throw new AccountNotFoundError();
-    }
-    if (!isSmartAccountClient(client)) {
-      throw new IncompatibleClientError(
-        "SmartAccountClient",
-        "updateSplitConfig",
-        client
-      );
-    }
-
-    const uo = encodeFunctionData({
-      abi: SplitPluginExecutionFunctionAbi,
-      functionName: "updateSplitConfig",
-      args,
-    });
-
-    return client.sendUserOperation({ uo, overrides, account, context });
-  },
-  deleteSplitConfig({ args, overrides, context, account = client.account }) {
-    if (!account) {
-      throw new AccountNotFoundError();
-    }
-    if (!isSmartAccountClient(client)) {
-      throw new IncompatibleClientError(
-        "SmartAccountClient",
-        "deleteSplitConfig",
-        client
-      );
-    }
-
-    const uo = encodeFunctionData({
-      abi: SplitPluginExecutionFunctionAbi,
-      functionName: "deleteSplitConfig",
-      args,
-    });
-
-    return client.sendUserOperation({ uo, overrides, account, context });
-  },
-  installSplitPlugin({
+  installMultiOwnerPlugin({
     account = client.account,
     overrides,
     context,
@@ -346,8 +244,8 @@ export const splitPluginActions: <
     if (!isSmartAccountClient(client)) {
       throw new IncompatibleClientError(
         "SmartAccountClient",
-        "installSplitPlugin",
-        client
+        "installMultiOwnerPlugin",
+        client,
       );
     }
 
@@ -356,194 +254,187 @@ export const splitPluginActions: <
       throw new ChainNotFoundError();
     }
 
-    const dependencies = params.dependencyOverrides ?? [
-      (() => {
-        const pluginAddress = MultiOwnerPlugin.meta.addresses[chain.id];
-        if (!pluginAddress) {
-          throw new Error(
-            "missing MultiOwnerPlugin address for chain " + chain.name
-          );
-        }
-
-        return encodePacked(["address", "uint8"], [pluginAddress, 0x0]);
-      })(),
-
-      (() => {
-        const pluginAddress = MultiOwnerPlugin.meta.addresses[chain.id];
-        if (!pluginAddress) {
-          throw new Error(
-            "missing MultiOwnerPlugin address for chain " + chain.name
-          );
-        }
-
-        return encodePacked(["address", "uint8"], [pluginAddress, 0x1]);
-      })(),
-    ];
+    const dependencies = params.dependencyOverrides ?? [];
     const pluginAddress =
       params.pluginAddress ??
-      (SplitPlugin.meta.addresses[chain.id] as Address | undefined);
+      (MultiOwnerPlugin.meta.addresses[chain.id] as Address | undefined);
 
     if (!pluginAddress) {
-      throw new Error("missing SplitPlugin address for chain " + chain.name);
+      throw new Error(
+        "missing MultiOwnerPlugin address for chain " + chain.name,
+      );
     }
 
     return installPlugin_(client, {
       pluginAddress,
-      pluginInitData: encodeAbiParameters(
-        [{ type: "address" }, { type: "address[]" }, { type: "uint8[]" }],
-        params.args
-      ),
+      pluginInitData: encodeAbiParameters([{ type: "address[]" }], params.args),
       dependencies,
       overrides,
       account,
       context,
     });
   },
-  encodeCreateSplit({ args }) {
+  encodeUpdateOwners({ args }) {
     return encodeFunctionData({
-      abi: SplitPluginExecutionFunctionAbi,
-      functionName: "createSplit",
+      abi: MultiOwnerPluginExecutionFunctionAbi,
+      functionName: "updateOwners",
       args,
     });
   },
-  encodeToggleIsSplitEnabled({ args }) {
+  encodeEip712Domain() {
     return encodeFunctionData({
-      abi: SplitPluginExecutionFunctionAbi,
-      functionName: "toggleIsSplitEnabled",
+      abi: MultiOwnerPluginExecutionFunctionAbi,
+      functionName: "eip712Domain",
+    });
+  },
+
+  async readEip712Domain({ account = client.account }) {
+    if (!account) {
+      throw new AccountNotFoundError();
+    }
+
+    if (!isSmartAccountClient(client)) {
+      throw new IncompatibleClientError(
+        "SmartAccountClient",
+        "readEip712Domain",
+        client,
+      );
+    }
+
+    return client.readContract({
+      address: account.address,
+      abi: MultiOwnerPluginExecutionFunctionAbi,
+      functionName: "eip712Domain",
+    });
+  },
+  encodeIsValidSignature({ args }) {
+    return encodeFunctionData({
+      abi: MultiOwnerPluginExecutionFunctionAbi,
+      functionName: "isValidSignature",
       args,
     });
   },
-  encodeSplit({ args }) {
-    return encodeFunctionData({
-      abi: SplitPluginExecutionFunctionAbi,
-      functionName: "split",
-      args,
-    });
-  },
-  encodeUpdateSplitConfig({ args }) {
-    return encodeFunctionData({
-      abi: SplitPluginExecutionFunctionAbi,
-      functionName: "updateSplitConfig",
-      args,
-    });
-  },
-  encodeDeleteSplitConfig({ args }) {
-    return encodeFunctionData({
-      abi: SplitPluginExecutionFunctionAbi,
-      functionName: "deleteSplitConfig",
+
+  async readIsValidSignature({ args, account = client.account }) {
+    if (!account) {
+      throw new AccountNotFoundError();
+    }
+
+    if (!isSmartAccountClient(client)) {
+      throw new IncompatibleClientError(
+        "SmartAccountClient",
+        "readIsValidSignature",
+        client,
+      );
+    }
+
+    return client.readContract({
+      address: account.address,
+      abi: MultiOwnerPluginExecutionFunctionAbi,
+      functionName: "isValidSignature",
       args,
     });
   },
 });
 
-export const SplitPluginExecutionFunctionAbi = [
+export const MultiOwnerPluginExecutionFunctionAbi = [
   {
     type: "function",
-    name: "createSplit",
+    name: "updateOwners",
     inputs: [
-      { name: "_tokenAddress", type: "address", internalType: "address" },
-      { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
-      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
+      { name: "ownersToAdd", type: "address[]", internalType: "address[]" },
+      { name: "ownersToRemove", type: "address[]", internalType: "address[]" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
   },
   {
     type: "function",
-    name: "toggleIsSplitEnabled",
-    inputs: [
-      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+    name: "eip712Domain",
+    inputs: [],
+    outputs: [
+      { name: "fields", type: "bytes1", internalType: "bytes1" },
+      { name: "name", type: "string", internalType: "string" },
+      { name: "version", type: "string", internalType: "string" },
+      { name: "chainId", type: "uint256", internalType: "uint256" },
+      { name: "verifyingContract", type: "address", internalType: "address" },
+      { name: "salt", type: "bytes32", internalType: "bytes32" },
+      { name: "extensions", type: "uint256[]", internalType: "uint256[]" },
     ],
-    outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
   },
   {
     type: "function",
-    name: "split",
+    name: "isValidSignature",
     inputs: [
-      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+      { name: "digest", type: "bytes32", internalType: "bytes32" },
+      { name: "signature", type: "bytes", internalType: "bytes" },
     ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "updateSplitConfig",
-    inputs: [
-      { name: "_configIndex", type: "uint256", internalType: "uint256" },
-      { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
-      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "deleteSplitConfig",
-    inputs: [
-      { name: "_configIndex", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
+    outputs: [{ name: "", type: "bytes4", internalType: "bytes4" }],
+    stateMutability: "view",
   },
 ] as const;
 
-export const SplitPluginAbi = [
+export const MultiOwnerPluginAbi = [
   {
     type: "function",
-    name: "AUTHOR",
+    name: "eip712Domain",
     inputs: [],
-    outputs: [{ name: "", type: "string", internalType: "string" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "NAME",
-    inputs: [],
-    outputs: [{ name: "", type: "string", internalType: "string" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "VERSION",
-    inputs: [],
-    outputs: [{ name: "", type: "string", internalType: "string" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "createSplit",
-    inputs: [
-      { name: "_tokenAddress", type: "address", internalType: "address" },
-      { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
-      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
+    outputs: [
+      { name: "fields", type: "bytes1", internalType: "bytes1" },
+      { name: "name", type: "string", internalType: "string" },
+      { name: "version", type: "string", internalType: "string" },
+      { name: "chainId", type: "uint256", internalType: "uint256" },
+      { name: "verifyingContract", type: "address", internalType: "address" },
+      { name: "salt", type: "bytes32", internalType: "bytes32" },
+      { name: "extensions", type: "uint256[]", internalType: "uint256[]" },
     ],
-    outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
   },
   {
     type: "function",
-    name: "deleteSplitConfig",
+    name: "encodeMessageData",
     inputs: [
-      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+      { name: "account", type: "address", internalType: "address" },
+      { name: "message", type: "bytes", internalType: "bytes" },
     ],
-    outputs: [],
-    stateMutability: "nonpayable",
+    outputs: [{ name: "", type: "bytes", internalType: "bytes" }],
+    stateMutability: "view",
   },
   {
     type: "function",
-    name: "isSplitCreator",
+    name: "getMessageHash",
     inputs: [
-      { name: "_configIndex", type: "uint256", internalType: "uint256" },
-      { name: "_splitCreator", type: "address", internalType: "address" },
+      { name: "account", type: "address", internalType: "address" },
+      { name: "message", type: "bytes", internalType: "bytes" },
+    ],
+    outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isOwnerOf",
+    inputs: [
+      { name: "account", type: "address", internalType: "address" },
+      { name: "ownerToCheck", type: "address", internalType: "address" },
     ],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
   },
   {
     type: "function",
+    name: "isValidSignature",
+    inputs: [
+      { name: "digest", type: "bytes32", internalType: "bytes32" },
+      { name: "signature", type: "bytes", internalType: "bytes" },
+    ],
+    outputs: [{ name: "", type: "bytes4", internalType: "bytes4" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "onInstall",
-    inputs: [{ name: "_data", type: "bytes", internalType: "bytes" }],
+    inputs: [{ name: "data", type: "bytes", internalType: "bytes" }],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -556,11 +447,18 @@ export const SplitPluginAbi = [
   },
   {
     type: "function",
+    name: "ownersOf",
+    inputs: [{ name: "account", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "address[]", internalType: "address[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "pluginManifest",
     inputs: [],
     outputs: [
       {
-        name: "manifest",
+        name: "",
         type: "tuple",
         internalType: "struct PluginManifest",
         components: [
@@ -812,8 +710,8 @@ export const SplitPluginAbi = [
     type: "function",
     name: "postExecutionHook",
     inputs: [
-      { name: "", type: "uint8", internalType: "uint8" },
-      { name: "", type: "bytes", internalType: "bytes" },
+      { name: "functionId", type: "uint8", internalType: "uint8" },
+      { name: "preExecHookData", type: "bytes", internalType: "bytes" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -888,46 +786,10 @@ export const SplitPluginAbi = [
     inputs: [
       { name: "functionId", type: "uint8", internalType: "uint8" },
       { name: "sender", type: "address", internalType: "address" },
-      { name: "value", type: "uint256", internalType: "uint256" },
-      { name: "data", type: "bytes", internalType: "bytes" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "split",
-    inputs: [
-      { name: "_configIndex", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "splitConfigCount",
-    inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "splitConfigIndexes",
-    inputs: [
-      { name: "", type: "address", internalType: "address" },
       { name: "", type: "uint256", internalType: "uint256" },
+      { name: "", type: "bytes", internalType: "bytes" },
     ],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "splitConfigs",
-    inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    outputs: [
-      { name: "tokenAddress", type: "address", internalType: "address" },
-      { name: "isSplitEnabled", type: "bool", internalType: "bool" },
-    ],
+    outputs: [],
     stateMutability: "view",
   },
   {
@@ -939,20 +801,10 @@ export const SplitPluginAbi = [
   },
   {
     type: "function",
-    name: "toggleIsSplitEnabled",
+    name: "updateOwners",
     inputs: [
-      { name: "_configIndex", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "updateSplitConfig",
-    inputs: [
-      { name: "_configIndex", type: "uint256", internalType: "uint256" },
-      { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
-      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
+      { name: "ownersToAdd", type: "address[]", internalType: "address[]" },
+      { name: "ownersToRemove", type: "address[]", internalType: "address[]" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -961,9 +813,9 @@ export const SplitPluginAbi = [
     type: "function",
     name: "userOpValidationFunction",
     inputs: [
-      { name: "", type: "uint8", internalType: "uint8" },
+      { name: "functionId", type: "uint8", internalType: "uint8" },
       {
-        name: "",
+        name: "userOp",
         type: "tuple",
         internalType: "struct UserOperation",
         components: [
@@ -992,72 +844,45 @@ export const SplitPluginAbi = [
           { name: "signature", type: "bytes", internalType: "bytes" },
         ],
       },
-      { name: "", type: "bytes32", internalType: "bytes32" },
+      { name: "userOpHash", type: "bytes32", internalType: "bytes32" },
     ],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "pure",
+    stateMutability: "view",
   },
   {
     type: "event",
-    name: "AutomationSwitched",
+    name: "OwnerUpdated",
     inputs: [
       {
-        name: "configIndex",
-        type: "uint256",
+        name: "account",
+        type: "address",
         indexed: true,
-        internalType: "uint256",
+        internalType: "address",
       },
       {
-        name: "currentState",
-        type: "bool",
+        name: "addedOwners",
+        type: "address[]",
         indexed: false,
-        internalType: "bool",
+        internalType: "address[]",
       },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "SplitConfigCreated",
-    inputs: [
-      { name: "user", type: "address", indexed: true, internalType: "address" },
       {
-        name: "configIndex",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "SplitConfigDeleted",
-    inputs: [
-      {
-        name: "configIndex",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "SplitExecuted",
-    inputs: [
-      {
-        name: "configIndex",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
+        name: "removedOwners",
+        type: "address[]",
+        indexed: false,
+        internalType: "address[]",
       },
     ],
     anonymous: false,
   },
   { type: "error", name: "AlreadyInitialized", inputs: [] },
+  { type: "error", name: "EmptyOwnersNotAllowed", inputs: [] },
   { type: "error", name: "InvalidAction", inputs: [] },
+  {
+    type: "error",
+    name: "InvalidOwner",
+    inputs: [{ name: "owner", type: "address", internalType: "address" }],
+  },
+  { type: "error", name: "NotAuthorized", inputs: [] },
   {
     type: "error",
     name: "NotContractCaller",
@@ -1072,4 +897,9 @@ export const SplitPluginAbi = [
     ],
   },
   { type: "error", name: "NotInitialized", inputs: [] },
+  {
+    type: "error",
+    name: "OwnerDoesNotExist",
+    inputs: [{ name: "owner", type: "address", internalType: "address" }],
+  },
 ] as const;

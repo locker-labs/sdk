@@ -58,19 +58,35 @@
       "types": "./_types/accounts/index.d.ts",
       "import": "./_esm/accounts/index.js",
       "default": "./_cjs/accounts/index.js"
+    },
+    "./bridge": {
+      "types": "./_types/bridge/index.d.ts",
+      "import": "./_esm/bridge/index.js",
+      "default": "./_cjs/bridge/index.js"
+    },
+    "./plugins": {
+      "types": "./_types/plugins/index.d.ts",
+      "import": "./_esm/plugins/index.js",
+      "default": "./_cjs/plugins/index.js"
     }
   },
   "typesVersions": {
     "*": {
       "accounts": [
         "./_types/accounts/index.d.ts"
+      ],
+      "bridge": [
+        "./_types/bridge/index.d.ts"
+      ],
+      "plugins": [
+        "./_types/plugins/index.d.ts"
       ]
     }
   },
   "dependencies": {
-    "@account-kit/smart-contracts": "^4.14.0",
-    "@coral-xyz/anchor": "^0.29.0",
-    "@solana/spl-token": "^0.4.1",
+    "@account-kit/smart-contracts": "^4.20.1",
+    "@coral-xyz/anchor": "^0.28.0",
+    "@solana/spl-token": "^0.3.8",
     "@solana/web3.js": "^1.90.2",
     "dotenv": "^16.4.7",
     "dotenv-expand": "^12.0.1",

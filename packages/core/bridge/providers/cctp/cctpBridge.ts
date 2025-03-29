@@ -5,8 +5,8 @@ import type { IBridgeFromSolanaParams, IBridgeFromSolanaResponse } from '../../t
 import * as spl from '@solana/spl-token';
 import { hexToBytes, keccak256, toHex, encodeAbiParameters, type Address } from 'viem';
 import * as anchor from "@coral-xyz/anchor";
-import type { LockerSplitClient } from 'split';
-import { USDC } from 'bridge/constants';
+import { USDC } from '../../../tokens';
+import type { ILockerClient } from 'accounts/types';
 
 export interface ICctpBridgeFromSolanaResponse extends IBridgeFromSolanaResponse {
     attestation: string;
@@ -24,13 +24,13 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         amount,
         recipientAddress,
         recipientChain,
-        solanaNetwork: mode,
+        solanaChain,
         solanaRpcUrl
     } = params;
 
     const {
         irisApiUrl,
-    } = CIRCLE_CONFIG[mode];
+    } = CIRCLE_CONFIG[solanaChain];
 
     // CCTP has bespoke domain IDs for each chain. These do not correspond to EVM
     const destinationDomainId = CCTP_DOMAIN_IDS[recipientChain];
@@ -40,8 +40,9 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         params
     );
 
-    if (solanaTokenAddress !== USDC.solana[mode]) {
-        throw new Error(`Cannot bridge token ${solanaTokenAddress} with CCTP in mode ${mode}. Expected USDC at ${USDC.solana[mode]}.`);
+    const expectedTokenAddress = USDC[solanaChain];
+    if (solanaTokenAddress !== expectedTokenAddress) {
+        throw new Error(`Cannot bridge token ${solanaTokenAddress} with CCTP in on ${solanaChain}. Expected USDC at ${expectedTokenAddress}.`);
     }
 
     // Create a new Provider based on the signer's Keypair
@@ -71,6 +72,7 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
     const messageSentEventAccountKeypair = Keypair.generate();
 
     // Anchor RPC call
+    console.log('Depositing for burn...');
     const depositForBurnTx = await tokenMessengerMinterProgram.methods
         .depositForBurn({
             amount: new anchor.BN(amount),
@@ -97,10 +99,12 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         .rpc();
 
     // Fetch attestation from the Attestation Service
-    const response = await getMessages(depositForBurnTx, irisApiUrl);
+    console.log(`Fetching attestation for tx ${depositForBurnTx}`);
+    const response = await getMessages(depositForBurnTx, irisApiUrl, solanaChain);
     const { attestation, message, eventNonce } = response.messages[0];
 
     // (Optional) reclaim event account rent
+    console.log('Reclaiming event account...');
     const reclaimEventAccountTx = await messageTransmitterProgram.methods
         .reclaimEventAccount({
             attestation: Buffer.from(attestation.replace("0x", ""), "hex"),
@@ -126,35 +130,32 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
  * Receives tokens bridged from Solana -> EVM using Circle's CCTP.
  */
 export async function cctpReceiveTokenFromSolana(
-  cctpResponse: ICctpBridgeFromSolanaResponse,
-  splitsClient: LockerSplitClient,
+    cctpResponse: ICctpBridgeFromSolanaResponse,
+    lockerClient: ILockerClient,
 ): Promise<ICctpBridgeFromSolanaResponse> {
-  const {
-      attestation,
-      message,
-      recipientChain,
-  } = cctpResponse;
+    const {
+        attestation,
+        message,
+        recipientChain,
+    } = cctpResponse;
+    console.log('CCTP receive token from Solana...');
+    console.log('Attestation:', attestation);
+    console.log('Message:', message);
+    console.log('Recipient chain:', recipientChain);
 
-  const messageTransmitter = getMessageTransmitterFromChain(recipientChain);
+    const messageTransmitter = getMessageTransmitterFromChain(recipientChain);
 
-  const selector = keccak256(toHex('receiveMessage(bytes,bytes)')).slice(0, 10);
-  const suffixData = encodeAbiParameters(
-    [
-      { name: "message", type: "bytes" },
-      { name: "attestation", type: "bytes" },
-    ],
-    [message as Address, attestation as Address]
-  );
-  const data = selector + suffixData.slice(2);
+    const selector = keccak256(toHex('receiveMessage(bytes,bytes)')).slice(0, 10);
+    const suffixData = encodeAbiParameters(
+        [
+            { name: "message", type: "bytes" },
+            { name: "attestation", type: "bytes" },
+        ],
+        [message as Address, attestation as Address]
+    );
+    const data = selector + suffixData.slice(2);
 
-  // Encode the function call
-//   const data = encodeFunctionData({
-//       abi: evmMessageTransmitterAbi,
-//       functionName: 'receiveMessage',
-//       args: [message, attestation],
-//   });
-
-  // Sends a receiveMessage userOp to complete the bridge
-  const response = await splitsClient.sendUserOps(messageTransmitter.address, data as Address, BigInt(0));
-  return response;    
+    // Sends a receiveMessage userOp to complete the bridge
+    const response = await lockerClient.sendUserOps(messageTransmitter.address, data as Address, BigInt(0));
+    return response;
 }

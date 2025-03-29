@@ -81,7 +81,7 @@ export const waitForTransaction = async (userOpHash: string, alchemyRpcUrl: stri
   }
 }
 
-export const adaptLockerChain2ViemChain = (lockerChain: EChain) => {
+export const adaptLockerChain2AlchemyChain = (lockerChain: EChain) => {
   switch (lockerChain) {
     case EChain.BASE:
       return base;

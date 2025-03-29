@@ -43,7 +43,7 @@ if (!alchemyApiKey) {
 
 // Bridge config
 const sourceChain = EChain.SOLANA_DEVNET;
-const recipientChain = EChain.SEPOLIA;
+const recipientChain = EChain.BASE_SEPOLIA;
 const usdcAmount = 100; // 0.01 USDC
 
 // Split config
@@ -72,45 +72,53 @@ const splitClient = await createLockerSplitClient({
 const recipientAddress = splitClient.getAddress();
 console.log(`Recipient address: ${recipientAddress}`);
 
-// One time connfiguration of Locker Client
-const pluginInstalled = await splitClient.isSplitPluginInstalled();
-if (!pluginInstalled) {
-  // 1. install Split Plugin
-  console.log("Installing Split Plugin");
-  await splitClient.installSplitPlugin();
+async function bridgeAndSplit() {
 
-  // 2. create split config
-  console.log("Creating split config");
-  await splitClient.createSplit(recipientChainToken, splitPercentages, splitRecipients);
-} else {
-  console.log("Split Plugin already installed");
+  // One time connfiguration of Locker Client
+  const pluginInstalled = await splitClient.isSplitPluginInstalled();
+  if (!pluginInstalled) {
+    // 1. install Split Plugin
+    console.log("Installing Split Plugin");
+    await splitClient.installSplitPlugin();
+
+    // 2. create split config
+    console.log("Creating split config");
+    await splitClient.createSplit(recipientChainToken, splitPercentages, splitRecipients);
+  } else {
+    console.log("Split Plugin already installed");
+  }
+
+  // CCTP to transfer from Solana to Base
+  const solanaPrivateKeyUint8Array = bs58.decode(solanaPrivateKeyB58!);
+  const solanaSigner = Keypair.fromSecretKey(solanaPrivateKeyUint8Array);
+
+  console.log(
+    `About to bridge from ${sourceChain} to ${recipientChain}: ${solanaSigner.publicKey.toBase58()} -> ${recipientAddress}`
+  );
+
+  const params = {
+    solanaSigner,
+    solanaTokenAddress: sourceChainToken,
+    amount: usdcAmount,
+    recipientChain,
+    recipientAddress,
+    bridgeName,
+    solanaChain: sourceChain,
+    solanaRpcUrl: solanaRpcUrl!,
+    lockerClient: splitClient,
+  };
+
+  // Bridge and Receive token from Solana
+  const response = await bridgeAndReceiveTokenFromSolana(params);
+  console.log(`Received token from ${sourceChain} on ${recipientChain}:`);
+  console.log(response);
 }
 
-// CCTP to transfer from Solana to Base
-const solanaPrivateKeyUint8Array = bs58.decode(solanaPrivateKeyB58);
-const solanaSigner = Keypair.fromSecretKey(solanaPrivateKeyUint8Array);
+async function cleanup() {
+  // Cleanup: uninstall split plugin and delete split config
+  await splitClient.deleteSplit(0);
+  await splitClient.uninstallSplitPlugin();
+}
 
-console.log(
-  `About to bridge from ${sourceChain} to ${recipientChain}: ${solanaSigner.publicKey.toBase58()} -> ${recipientAddress}`
-);
-
-const params = {
-  solanaSigner,
-  solanaTokenAddress: sourceChainToken,
-  amount: usdcAmount,
-  recipientChain,
-  recipientAddress,
-  bridgeName,
-  solanaChain: sourceChain,
-  solanaRpcUrl,
-  lockerClient: splitClient,
-};
-
-// Bridge and Receive token from Solana
-const response = await bridgeAndReceiveTokenFromSolana(params);
-console.log(`Received token from ${sourceChain} on ${recipientChain}:`);
-console.log(response);
-
-// Cleanup: uninstall split plugin and delete split config
-await splitClient.deleteSplit(0);
-await splitClient.uninstallSplitPlugin();
+await bridgeAndSplit();
+await cleanup();

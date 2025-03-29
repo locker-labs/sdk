@@ -7,8 +7,8 @@ import { splitPluginActions as sepoliaSplitPluginActions } from "./gens/sepolia/
 import { splitPluginActions as baseSepoliaSplitPluginActions } from "./gens/baseSepolia/split/plugin";
 import { isSplitPluginInstalled } from "./utils/helpers";
 import { chainToSplitPluginAddress } from "./defs/split/config";
-import { base, baseSepolia } from "viem/chains";
-import { adaptLockerChain2ViemChain, waitForTransaction } from '../helpers';
+import { base, baseSepolia, sepolia } from "@account-kit/infra";
+import { adaptLockerChain2AlchemyChain, waitForTransaction } from '../helpers';
 import type { ILockerClient, ILockerClientParams } from "accounts/types";
 
 export interface ILockerSplitClient extends ILockerClient {
@@ -46,17 +46,25 @@ export async function createLockerSplitClient(
   const lockerClient = await createLockerClient(params);
   const { chain: lockerChain, alchemyApiKey } = params;
 
-  const chain = adaptLockerChain2ViemChain(lockerChain);
+  const chain = adaptLockerChain2AlchemyChain(lockerChain);
+  const chainId = chain.id;
 
-  const splitPluginActions =
-    chain.id === base.id
-      ? baseSplitPluginActions
-      : chain.id === baseSepolia.id ?
-        baseSepoliaSplitPluginActions
-        : sepoliaSplitPluginActions;
+  let splitPluginActions;
+  switch (chainId) {
+    case base.id:
+      splitPluginActions = baseSplitPluginActions;
+      break;
+    case baseSepolia.id:
+      splitPluginActions = baseSepoliaSplitPluginActions;
+      break;
+    case sepolia.id:
+      splitPluginActions = sepoliaSplitPluginActions;
+      break;
+    default:
+      throw new Error(`Unsupported chain: ${chain.id}`);
+  }
 
   const splitLockerClient = await lockerClient.extend(splitPluginActions);
-  const chainId = chain.id;
   const alchemyRpcUrl = `${chain.rpcUrls.alchemy.http[0]}/${alchemyApiKey}`;
 
   return {

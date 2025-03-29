@@ -43,7 +43,7 @@ if (!alchemyApiKey) {
 
 // Bridge config
 const sourceChain = EChain.SOLANA_DEVNET;
-const recipientChain = EChain.BASE_SEPOLIA;
+const recipientChain = EChain.SEPOLIA;
 const usdcAmount = 100; // 0.01 USDC
 
 // Split config

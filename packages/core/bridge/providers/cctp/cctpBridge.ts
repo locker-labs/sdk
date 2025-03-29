@@ -5,8 +5,8 @@ import type { IBridgeFromSolanaParams, IBridgeFromSolanaResponse } from '../../t
 import * as spl from '@solana/spl-token';
 import { hexToBytes, keccak256, toHex, encodeAbiParameters, type Address } from 'viem';
 import * as anchor from "@coral-xyz/anchor";
-import type { ILockerSplitClient } from 'plugins';
 import { USDC } from '../../../tokens';
+import type { ILockerClient } from 'accounts/types';
 
 export interface ICctpBridgeFromSolanaResponse extends IBridgeFromSolanaResponse {
     attestation: string;
@@ -24,13 +24,13 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         amount,
         recipientAddress,
         recipientChain,
-        solanaNetwork: mode,
+        solanaChain,
         solanaRpcUrl
     } = params;
 
     const {
         irisApiUrl,
-    } = CIRCLE_CONFIG[mode];
+    } = CIRCLE_CONFIG[solanaChain];
 
     // CCTP has bespoke domain IDs for each chain. These do not correspond to EVM
     const destinationDomainId = CCTP_DOMAIN_IDS[recipientChain];
@@ -40,9 +40,9 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         params
     );
 
-    const expectedTokenAddress = mode === "mainnet" ? USDC.solana : USDC.solanaDevnet;
+    const expectedTokenAddress = USDC[solanaChain];
     if (solanaTokenAddress !== expectedTokenAddress) {
-        throw new Error(`Cannot bridge token ${solanaTokenAddress} with CCTP in mode ${mode}. Expected USDC at ${expectedTokenAddress}.`);
+        throw new Error(`Cannot bridge token ${solanaTokenAddress} with CCTP in on ${solanaChain}. Expected USDC at ${expectedTokenAddress}.`);
     }
 
     // Create a new Provider based on the signer's Keypair
@@ -72,6 +72,7 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
     const messageSentEventAccountKeypair = Keypair.generate();
 
     // Anchor RPC call
+    console.log('Depositing for burn...');
     const depositForBurnTx = await tokenMessengerMinterProgram.methods
         .depositForBurn({
             amount: new anchor.BN(amount),
@@ -98,10 +99,12 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         .rpc();
 
     // Fetch attestation from the Attestation Service
+    console.log('Fetching attestation...');
     const response = await getMessages(depositForBurnTx, irisApiUrl);
     const { attestation, message, eventNonce } = response.messages[0];
 
     // (Optional) reclaim event account rent
+    console.log('Reclaiming event account...');
     const reclaimEventAccountTx = await messageTransmitterProgram.methods
         .reclaimEventAccount({
             attestation: Buffer.from(attestation.replace("0x", ""), "hex"),
@@ -128,7 +131,7 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
  */
 export async function cctpReceiveTokenFromSolana(
     cctpResponse: ICctpBridgeFromSolanaResponse,
-    splitsClient: ILockerSplitClient,
+    lockerClient: ILockerClient,
 ): Promise<ICctpBridgeFromSolanaResponse> {
     const {
         attestation,
@@ -149,6 +152,6 @@ export async function cctpReceiveTokenFromSolana(
     const data = selector + suffixData.slice(2);
 
     // Sends a receiveMessage userOp to complete the bridge
-    const response = await splitsClient.sendUserOps(messageTransmitter.address, data as Address, BigInt(0));
+    const response = await lockerClient.sendUserOps(messageTransmitter.address, data as Address, BigInt(0));
     return response;
 }

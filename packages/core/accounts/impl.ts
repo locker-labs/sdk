@@ -1,6 +1,7 @@
 import { alchemy } from "@account-kit/infra";
 import type { ILockerClientParams, ILockerClient } from "./types";
 import { createModularAccountAlchemyClient } from "@account-kit/smart-contracts";
+import { adaptLockerChain2ViemChain } from "helpers";
 
 /**
  * Validates the input parameters for creating the client.
@@ -33,7 +34,9 @@ export async function createLockerClient(
 ): Promise<ILockerClient> {
   validateClientParams(params);
 
-  const { alchemyApiKey: apiKey, chain, signer } = params;
+  const { alchemyApiKey: apiKey, chain: lockerChain, signer } = params;
+
+  const chain = adaptLockerChain2ViemChain(lockerChain);
 
   const aaClient = await createModularAccountAlchemyClient({
     signer,

@@ -1,14 +1,13 @@
 import { Keypair } from '@solana/web3.js';
 import bs58 from 'bs58';
 import { type Address } from "viem";
-import { baseSepolia, sepolia } from "@account-kit/infra";
 import { LocalAccountSigner } from "@aa-sdk/core";
 import {
   bridgeAndReceiveTokenFromSolana,
   USDC,
   createLockerSplitClient,
   type IBridgeName,
-  type ISolanaNetwork,
+  EChain,
 } from "@locker-labs/sdk";
 import * as dotenv from "dotenv";
 
@@ -42,10 +41,10 @@ if (!alchemyApiKey) {
  */
 
 // Bridge config
-const solanaNetwork: ISolanaNetwork = "devnet";
-const usdcSourceChain = USDC.solanaDevnet;
+const sourceChain = EChain.SOLANA_DEVNET;
+const sourceChainToken = USDC[sourceChain];
 const usdcAmount = 1000000; // 1 USDC
-const recipientChain = sepolia;
+const recipientChain = EChain.BASE_SEPOLIA;
 const bridgeName: IBridgeName = "cctp";
 
 // Split config
@@ -98,22 +97,23 @@ console.log(
   recipientAddress
 );
 
-// const params = {
-//   solanaSigner,
-//   solanaTokenAddress: usdcSourceChain,
-//   amount: usdcAmount,
-//   recipientChain,
-//   recipientAddress,
-//   bridgeName,
-//   solanaNetwork,
-//   solanaRpcUrl,
-// };
+const params = {
+  solanaSigner,
+  solanaTokenAddress: sourceChainToken,
+  amount: usdcAmount,
+  recipientChain,
+  recipientAddress,
+  bridgeName,
+  solanaChain: sourceChain,
+  solanaRpcUrl,
+  lockerClient: splitClient,
+};
 
-// // Bridge and Receive token from Solana
-// const response = await bridgeAndReceiveTokenFromSolana(params, splitClient);
-// // TODO: merge params into one
-// console.log(`Received token from Solana on ${recipientChain}:`);
-// console.log(response);
+// Bridge and Receive token from Solana
+const response = await bridgeAndReceiveTokenFromSolana(params);
+// TODO: merge params into one
+console.log(`Received token from Solana on ${recipientChain}:`);
+console.log(response);
 
 // Cleanup: uninstall split plugin and delete split config
 await splitClient.deleteSplit(0);

@@ -1,3 +1,6 @@
+import { EChain } from "tokens";
+import { base, baseSepolia, sepolia } from "@account-kit/infra";
+
 const getUserOperationByHash = async (userOpHash: string, alchemyRpcUrl: string) => {
   const headers = {
     accept: "application/json",
@@ -75,5 +78,20 @@ export const waitForTransaction = async (userOpHash: string, alchemyRpcUrl: stri
       break;
     }
     await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second before retrying
+  }
+}
+
+export const adaptLockerChain2ViemChain = (lockerChain: EChain) => {
+  switch (lockerChain) {
+    case EChain.BASE:
+      return base;
+    case EChain.BASE_SEPOLIA:
+      return baseSepolia;
+    case EChain.SEPOLIA:
+      return sepolia;
+    case EChain.SOLANA:
+    case EChain.SOLANA_DEVNET:
+    default:
+      throw new Error(`Unsupported chain: ${lockerChain}`);
   }
 }

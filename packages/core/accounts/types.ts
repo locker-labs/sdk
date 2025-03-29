@@ -1,9 +1,10 @@
-import { type Address, type Chain } from "viem";
+import { type Address } from "viem";
 import { LocalAccountSigner } from "@aa-sdk/core";
+import type { EChain } from "tokens";
 
 export interface ILockerClientParams {
     alchemyApiKey: string; // Used for the Alchemy transport.
-    chain: Chain;
+    chain: EChain;
     signer: ReturnType<typeof LocalAccountSigner.privateKeyToAccountSigner>;
     merchantSeed1?: string;
 }

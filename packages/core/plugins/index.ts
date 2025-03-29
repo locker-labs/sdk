@@ -8,7 +8,7 @@ import { splitPluginActions as baseSepoliaSplitPluginActions } from "./gens/base
 import { isSplitPluginInstalled } from "./utils/helpers";
 import { chainToSplitPluginAddress } from "./defs/split/config";
 import { base, baseSepolia } from "viem/chains";
-import { waitForTransaction } from '../helpers';
+import { adaptLockerChain2ViemChain, waitForTransaction } from '../helpers';
 import type { ILockerClient, ILockerClientParams } from "accounts/types";
 
 export interface ILockerSplitClient extends ILockerClient {
@@ -44,7 +44,9 @@ export async function createLockerSplitClient(
   params: ILockerClientParams
 ): Promise<ILockerSplitClient> {
   const lockerClient = await createLockerClient(params);
-  const { chain, alchemyApiKey } = params;
+  const { chain: lockerChain, alchemyApiKey } = params;
+
+  const chain = adaptLockerChain2ViemChain(lockerChain);
 
   const splitPluginActions =
     chain.id === base.id
@@ -104,7 +106,7 @@ export async function createLockerSplitClient(
         return null;
       }
       const res = await splitLockerClient.uninstallPlugin({
-        pluginAddress: chainToSplitPluginAddress[params.chain.id],
+        pluginAddress: chainToSplitPluginAddress[chain.id],
       });
 
       console.log("Waiting for uninstallation confirmation...");

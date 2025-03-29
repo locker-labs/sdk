@@ -33,16 +33,15 @@ export async function receiveTokenFromSolana(
  * Bridges a token from Solana and receives on destination chain.
  */
 export async function bridgeAndReceiveTokenFromSolana(
-    bridgeFromSolanaParams: IBridgeFromSolanaParams,
-    splitsClient: ILockerSplitClient,
+    bridgeFromSolanaParams: IBridgeFromSolanaParams
 ) {
-    const { bridgeName } = bridgeFromSolanaParams;
+    const { bridgeName, lockerClient } = bridgeFromSolanaParams;
 
     if (bridgeName === 'cctp') {
         const response: ICctpBridgeFromSolanaResponse = await cctpBridgeTokenFromSolana(bridgeFromSolanaParams);
         console.log('Bridge response:', response);
 
-        return cctpReceiveTokenFromSolana(response, splitsClient);
+        return cctpReceiveTokenFromSolana(response, lockerClient);
     }
 
     throw new Error(`Unsupported bridge: ${bridgeName}`);

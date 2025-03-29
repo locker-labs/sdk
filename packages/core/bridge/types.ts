@@ -1,4 +1,6 @@
 import type { Keypair } from "@solana/web3.js";
+import type { ILockerClient } from "accounts/types";
+import type { EChain } from "tokens";
 
 export type ISolanaNetwork = "devnet" | "mainnet";
 
@@ -12,10 +14,11 @@ export type IBridgeFromSolanaParams = {
     solanaTokenAddress: string;
     solanaRpcUrl: string;
     amount: number;
-    recipientChain: string;
+    recipientChain: EChain;
     recipientAddress: string;
-    solanaNetwork: ISolanaNetwork;
+    solanaChain: EChain;
     bridgeName: IBridgeName;
+    lockerClient: ILockerClient;
 }
 
 export type IBridgeFromSolanaResponse = {

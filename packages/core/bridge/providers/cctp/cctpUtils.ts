@@ -13,6 +13,7 @@ import { CCTP_DOMAIN_IDS, CCTP_EVM_CONTRACTS } from './cctpConstants';
 import type { IBridgeFromSolanaParams } from "../../types";
 import * as evmMessageTransmitterAbi from './abi/evm/message_transmitter.json';
 import type { Address } from "viem";
+import type { EChain } from "tokens";
 
 /**
  * Returns the Anchor programs for MessageTransmitter + TokenMessengerMinter.
@@ -65,9 +66,9 @@ export const getDepositForBurnPdas = (
 /**
  * Helper function to fetch Circle's attestation data for a specific Solana transaction.
  */
-export async function getMessages(txHash: string, irisApiUrl: string) {
+export async function getMessages(txHash: string, irisApiUrl: string, solanaChain: EChain) {
     let attestationResponse: any = {};
-    const solanaDomain = CCTP_DOMAIN_IDS.solana;
+    const solanaDomain = CCTP_DOMAIN_IDS[solanaChain];
 
     while (
         attestationResponse.error ||

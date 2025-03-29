@@ -8,6 +8,7 @@ import {
   createLockerSplitClient,
   type IBridgeName,
   EChain,
+  cctpBridgeTokenFromSolana,
 } from "@locker-labs/sdk";
 import * as dotenv from "dotenv";
 
@@ -43,7 +44,7 @@ if (!alchemyApiKey) {
 // Bridge config
 const sourceChain = EChain.SOLANA_DEVNET;
 const sourceChainToken = USDC[sourceChain];
-const usdcAmount = 1000000; // 1 USDC
+const usdcAmount = 100; // 0.01 USDC
 const recipientChain = EChain.BASE_SEPOLIA;
 const bridgeName: IBridgeName = "cctp";
 
@@ -72,29 +73,24 @@ const recipientAddress = splitClient.getAddress();
 console.log(`Recipient address: ${recipientAddress}`);
 
 // One time connfiguration of Locker Client
-const pluginInstalled = await splitClient.isSplitPluginInstalled();
-if (!pluginInstalled) {
-  console.log("Installing Split Plugin");
-  // 1. install Split Plugin
-  await splitClient.installSplitPlugin();
+// const pluginInstalled = await splitClient.isSplitPluginInstalled();
+// if (!pluginInstalled) {
+//   console.log("Installing Split Plugin");
+//   // 1. install Split Plugin
+//   await splitClient.installSplitPlugin();
 
-  // 2. create split config
-  await splitClient.createSplit(recipientChainToken, splitPercentages, splitRecipients);
-} else {
-  console.log("Split Plugin already installed");
-}
+//   // 2. create split config
+//   await splitClient.createSplit(recipientChainToken, splitPercentages, splitRecipients);
+// } else {
+//   console.log("Split Plugin already installed");
+// }
 
 // CCTP to transfer from Solana to Base
 const solanaPrivateKeyUint8Array = bs58.decode(solanaPrivateKeyB58);
 const solanaSigner = Keypair.fromSecretKey(solanaPrivateKeyUint8Array);
 
 console.log(
-  "About to bridge from Solana to " +
-  recipientChain +
-  ": " +
-  solanaSigner.publicKey.toBase58() +
-  " -> " +
-  recipientAddress
+  `About to bridge from ${sourceChain} to ${recipientChain}: ${solanaSigner.publicKey.toBase58()} -> ${recipientAddress}`
 );
 
 const params = {
@@ -110,9 +106,10 @@ const params = {
 };
 
 // Bridge and Receive token from Solana
-const response = await bridgeAndReceiveTokenFromSolana(params);
+const response = await cctpBridgeTokenFromSolana(params);
+// const response = await bridgeAndReceiveTokenFromSolana(params);
 // TODO: merge params into one
-console.log(`Received token from Solana on ${recipientChain}:`);
+console.log(`Received token from ${sourceChain} on ${recipientChain}:`);
 console.log(response);
 
 // Cleanup: uninstall split plugin and delete split config

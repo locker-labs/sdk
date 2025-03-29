@@ -99,8 +99,8 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         .rpc();
 
     // Fetch attestation from the Attestation Service
-    console.log('Fetching attestation...');
-    const response = await getMessages(depositForBurnTx, irisApiUrl);
+    console.log(`Fetching attestation for tx ${depositForBurnTx}`);
+    const response = await getMessages(depositForBurnTx, irisApiUrl, solanaChain);
     const { attestation, message, eventNonce } = response.messages[0];
 
     // (Optional) reclaim event account rent

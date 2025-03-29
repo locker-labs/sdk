@@ -34,11 +34,12 @@ export async function createLockerClient(
 ): Promise<ILockerClient> {
   validateClientParams(params);
 
-  const { alchemyApiKey: apiKey, chain: lockerChain, signer } = params;
+  const { alchemyApiKey: apiKey, chain: lockerChain, signer, salt } = params;
 
   const chain = adaptLockerChain2AlchemyChain(lockerChain);
 
   const aaClient = await createModularAccountAlchemyClient({
+    salt: salt ? salt : BigInt(0),
     signer,
     chain,
     transport: alchemy({ apiKey }),

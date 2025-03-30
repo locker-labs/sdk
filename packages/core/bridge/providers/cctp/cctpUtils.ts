@@ -1,20 +1,17 @@
-// src/utils/cctpUtils.ts
 import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Connection } from '@solana/web3.js';
 import fetch from 'node-fetch';
-
 import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
+import type { Address } from "viem";
 
 import { type MessageTransmitter } from './target/types/message_transmitter';
 import { type TokenMessengerMinter } from './target/types/token_messenger_minter';
 import * as MessageTransmitterIDL from './target/idl/message_transmitter.json';
 import * as TokenMessengerMinterIDL from './target/idl/token_messenger_minter.json';
-import { CCTP_DOMAIN_IDS, CCTP_EVM_CONTRACTS } from './cctpConstants';
-import type { IBridgeFromSolanaParams } from "../../types";
 import * as evmMessageTransmitterAbi from './abi/evm/message_transmitter.json';
-import type { Address } from "viem";
-import { EChain } from "tokens";
-
+import { EChain } from "../../../accounts/tokens.js";
+import { CCTP_DOMAIN_IDS, CCTP_EVM_CONTRACTS } from './cctpConstants.js';
+import type { IBridgeFromSolanaParams } from "../../types.js";
 /**
  * Returns the Anchor programs for MessageTransmitter + TokenMessengerMinter.
  */

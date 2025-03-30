@@ -1,6 +1,6 @@
 # bridge-and-split
 
-Uses @locker-labs/sdk to bridge a token from Solana to Base and then splits the token using Locker SplitPlugin.
+Bridge 0.01 USDC from Solana Devnet to Base Sepolia. Then split the token using Locker Split Plugin.
 
 ```bash
 bun install

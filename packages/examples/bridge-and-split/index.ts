@@ -8,7 +8,6 @@ import {
   createLockerSplitClient,
   type IBridgeName,
   EChain,
-  cctpBridgeTokenFromSolana,
 } from "@locker-labs/sdk";
 import * as dotenv from "dotenv";
 
@@ -48,8 +47,8 @@ const usdcAmount = 100; // 0.01 USDC
 
 // Split config
 const splitRecipients = [
-  "0xCDcf770C605CFdb2069439361Ef59b85500E835b",
-  "0xB451c8d5F91324406629da69fDDEDd2bF96A71AB"
+  "0xd7F723f8EDeC8D6D62caa4Ecc2b5Ca1292618355",
+  "0x1ECF3f51A771983C150b3cB4A2162E89c0A046Fc"
 ] as Address[];
 const splitPercentages = [95, 5];
 

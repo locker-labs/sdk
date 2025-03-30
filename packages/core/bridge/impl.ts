@@ -1,6 +1,6 @@
-import type { ILockerSplitClient } from 'plugins';
-import { cctpBridgeTokenFromSolana, cctpReceiveTokenFromSolana, type ICctpBridgeFromSolanaResponse } from './providers/cctp/cctpBridge';
-import type { IBridgeFromSolanaParams, IBridgeFromSolanaResponse, IBridgeName } from './types';
+import type { ILockerSplitClient } from '../plugins/index.js';
+import { cctpBridgeTokenFromSolana, cctpReceiveTokenFromSolana, type ICctpBridgeFromSolanaResponse } from './providers/cctp/cctpBridge.js';
+import type { IBridgeFromSolanaParams, IBridgeFromSolanaResponse, IBridgeName } from './types.js';
 
 /**
  * Bridges a token from Solana to another chain.

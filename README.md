@@ -8,14 +8,13 @@ The split plugin lets your wallet automatically split up it's token balance betw
 
 ### Quickstart
 
-Install dependencies
-```
+Install dependencies:
+```sh
 npm install @locker-labs/sdk bs58 viem @solana/web3.js @aa-sdk/core
 ```
 
 Create smart account that divides all USDC deposits between two recipient addresses:
 ```ts
-
 import {
   bridgeAndReceiveTokenFromSolana,
   USDC,

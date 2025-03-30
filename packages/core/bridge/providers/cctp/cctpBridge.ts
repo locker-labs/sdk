@@ -1,12 +1,13 @@
 import { Connection, Keypair, PublicKey } from '@solana/web3.js';
-import { CCTP_DOMAIN_IDS, CIRCLE_CONFIG } from './cctpConstants';
-import { evmAddressToBytes32, findOrCreateUserTokenAccount, getDepositForBurnPdas, getMessages, getPrograms, getMessageTransmitterFromChain } from './cctpUtils';
-import type { IBridgeFromSolanaParams, IBridgeFromSolanaResponse } from '../../types';
-import * as spl from '@solana/spl-token';
 import { hexToBytes, keccak256, toHex, encodeAbiParameters, type Address } from 'viem';
+import * as spl from '@solana/spl-token';
 import * as anchor from "@coral-xyz/anchor";
-import { USDC } from '../../../tokens';
-import type { ILockerClient } from 'accounts/types';
+
+import { CCTP_DOMAIN_IDS, CIRCLE_CONFIG } from './cctpConstants.js';
+import { evmAddressToBytes32, findOrCreateUserTokenAccount, getDepositForBurnPdas, getMessages, getPrograms, getMessageTransmitterFromChain } from './cctpUtils.js';
+import type { IBridgeFromSolanaParams, IBridgeFromSolanaResponse } from '../../types.js';
+import type { ILockerClient } from '../../../accounts/types.js';
+import { USDC } from '../../../accounts/tokens.js';
 
 export interface ICctpBridgeFromSolanaResponse extends IBridgeFromSolanaResponse {
     attestation: string;

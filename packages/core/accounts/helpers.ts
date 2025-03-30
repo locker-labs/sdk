@@ -1,5 +1,5 @@
-import { EChain } from "tokens";
 import { base, baseSepolia, sepolia } from "@account-kit/infra";
+import { EChain } from "./tokens.js";
 
 const getUserOperationByHash = async (userOpHash: string, alchemyRpcUrl: string) => {
   const headers = {

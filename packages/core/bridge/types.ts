@@ -1,6 +1,6 @@
 import type { Keypair } from "@solana/web3.js";
-import type { ILockerClient } from "accounts/types";
-import type { EChain } from "tokens";
+import type { EChain } from "../accounts/tokens.js";
+import type { ILockerClient } from "../accounts/types.js";
 
 export type ISolanaNetwork = "devnet" | "mainnet";
 

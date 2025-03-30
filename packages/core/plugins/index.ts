@@ -1,16 +1,17 @@
+import { type Address, createPublicClient, http } from "viem";
+
 import {
   createLockerClient,
-} from "../accounts/impl";
-import { type Address, createPublicClient, http } from "viem";
-import { splitPluginActions as baseSplitPluginActions } from "./gens/base/split/plugin";
-import { splitPluginActions as sepoliaSplitPluginActions } from "./gens/sepolia/split/plugin";
-import { splitPluginActions as baseSepoliaSplitPluginActions } from "./gens/baseSepolia/split/plugin";
-import { isSplitPluginInstalled } from "./utils/helpers";
-import { chainToSplitPluginAddress } from "./defs/split/config";
+} from "../accounts/impl.js";
+import { splitPluginActions as baseSplitPluginActions } from "./gens/base/split/plugin.js";
+import { splitPluginActions as sepoliaSplitPluginActions } from "./gens/sepolia/split/plugin.js";
+import { splitPluginActions as baseSepoliaSplitPluginActions } from "./gens/baseSepolia/split/plugin.js";
+import { isSplitPluginInstalled } from "./utils/helpers.js";
+import { chainToSplitPluginAddress } from "./defs/split/config.js";
 import { base, baseSepolia, sepolia } from "@account-kit/infra";
-import { adaptLockerChain2AlchemyChain, waitForTransaction } from "../helpers";
-import { SplitPluginAbi } from "./defs/split/abi";
-import type { ILockerClient, ILockerClientParams } from "accounts/types";
+import { adaptLockerChain2AlchemyChain, waitForTransaction } from "../accounts/helpers.js";
+import { SplitPluginAbi } from "./defs/split/abi.js";
+import type { ILockerClient, ILockerClientParams } from "../accounts/types.js";
 
 export interface ILockerSplitClient extends ILockerClient {
   getAddress: () => Address;

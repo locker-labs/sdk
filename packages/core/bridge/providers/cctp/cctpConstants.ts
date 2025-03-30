@@ -1,4 +1,4 @@
-import { EChain } from "tokens";
+import { EChain } from "../../../accounts/tokens.js";
 
 /**
  * https://developers.circle.com/stablecoins/supported-domains

@@ -1,7 +1,8 @@
 import { alchemy } from "@account-kit/infra";
-import type { ILockerClientParams, ILockerClient } from "./types";
 import { createModularAccountAlchemyClient } from "@account-kit/smart-contracts";
-import { adaptLockerChain2AlchemyChain } from "helpers";
+
+import type { ILockerClientParams, ILockerClient } from "./types.js";
+import { adaptLockerChain2AlchemyChain } from "./helpers.js";
 
 /**
  * Validates the input parameters for creating the client.

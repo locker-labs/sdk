@@ -71,4 +71,4 @@ This is a monorepo that contains the smart contracts for the actual modules, as 
 - Plugins: Any EVM chain. Currently deployed to EthereumSepolia and Base Mainnet. 
 - Bridging: Any chain supported by CCTP. Currently assuming Solana is the source chain.
 
-Contact us to get your chain added. (@locker_money)[https://twitter.com/]locker_money
+Contact us to get your chain added. (@locker_money)[https://twitter.com/locker_money]

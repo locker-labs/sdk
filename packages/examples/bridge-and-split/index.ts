@@ -43,7 +43,7 @@ if (!alchemyApiKey) {
 // Bridge config
 const sourceChain = EChain.SOLANA_DEVNET;
 const recipientChain = EChain.BASE_SEPOLIA;
-const usdcAmount = 100; // 0.01 USDC
+const usdcAmount = 10000; // 0.01 USDC
 
 // Split config
 const splitRecipients = [
@@ -74,25 +74,14 @@ const splitClient = await createLockerSplitClient({
 const recipientAddress = splitClient.getAddress();
 console.log(`Recipient address: ${recipientAddress}`);
 
+// One time configuration of Locker Split Client
+await splitClient.setupSplit(
+  recipientChainToken,
+  splitPercentages,
+  splitRecipients
+);
+
 async function bridgeAndSplit() {
-  // One time connfiguration of Locker Client
-  const pluginInstalled = await splitClient.isSplitPluginInstalled();
-  if (!pluginInstalled) {
-    // 1. install Split Plugin
-    console.log("Installing Split Plugin");
-    await splitClient.installSplitPlugin();
-
-    // 2. create split config
-    console.log("Creating split config");
-    await splitClient.createSplit(
-      recipientChainToken,
-      splitPercentages,
-      splitRecipients
-    );
-  } else {
-    console.log("Split Plugin already installed");
-  }
-
   // CCTP to transfer from Solana to Base
   const solanaPrivateKeyUint8Array = bs58.decode(solanaPrivateKeyB58!);
   const solanaSigner = Keypair.fromSecretKey(solanaPrivateKeyUint8Array);

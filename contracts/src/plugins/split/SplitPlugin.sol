@@ -32,11 +32,12 @@ contract SplitPlugin is BasePlugin {
     // Split config consts
     uint8 internal constant MAX_TOKEN_CONFIGS = 5;
     uint8 internal constant MAX_SPLIT_RECIPIENTS = 10;
+    uint32 internal constant MAX_PERCENTAGE = 10000000;
 
     struct SplitConfig {
         address tokenAddress; // tokenAddress to be split
         address[] splitAddresses; // receiver addresses of the split
-        uint8[] percentages; // respective percentages of each splitAddress
+        uint32[] percentages; // respective percentages of each splitAddress
         bool isSplitEnabled; // execute split in postExec hook
     }
 
@@ -50,7 +51,7 @@ contract SplitPlugin is BasePlugin {
     uint256 public splitConfigCount;
 
     /// @dev Creates a split configuration for the user
-    function createSplit(address _tokenAddress, address[] memory _splitAddresses, uint8[] memory _percentages)
+    function createSplit(address _tokenAddress, address[] memory _splitAddresses, uint32[] memory _percentages)
         external
     {
         require(_splitAddresses.length > 0, "SplitPlugin: No split addresses provided");
@@ -71,7 +72,7 @@ contract SplitPlugin is BasePlugin {
         for (uint8 i = 0; i < _percentages.length; i++) {
             totalPercentage += _percentages[i];
         }
-        require(totalPercentage == 100, "SplitPlugin: Percentages must add up to 100");
+        require(totalPercentage == MAX_PERCENTAGE, "SplitPlugin: Invalid percentages");
         uint256 currentSplitConfigIndex = splitConfigCount;
         splitConfigCount++;
         SplitConfig memory config = SplitConfig(_tokenAddress, _splitAddresses, _percentages, true);
@@ -97,12 +98,12 @@ contract SplitPlugin is BasePlugin {
         SplitConfig memory config = splitConfigs[_configIndex];
         IERC20 token = IERC20(config.tokenAddress);
         uint256 totalSplitAmount = token.balanceOf(address(msg.sender));
-        if (!config.isSplitEnabled || totalSplitAmount < 100) {
+        if (!config.isSplitEnabled || totalSplitAmount < MAX_PERCENTAGE) {
             return;
         }
 
         for (uint256 i = 0; i < config.splitAddresses.length; i++) {
-            uint256 amount = (totalSplitAmount * config.percentages[i]) / 100;
+            uint256 amount = (totalSplitAmount * config.percentages[i]) / MAX_PERCENTAGE;
             if (amount > 0) {
                 IPluginExecutor(msg.sender).executeFromPluginExternal(
                     config.tokenAddress,
@@ -116,7 +117,7 @@ contract SplitPlugin is BasePlugin {
     }
 
     /// @dev Updates the split limit for the given split config
-    function updateSplitConfig(uint256 _configIndex, address[] memory _splitAddresses, uint8[] memory _percentages)
+    function updateSplitConfig(uint256 _configIndex, address[] memory _splitAddresses, uint32[] memory _percentages)
         external
     {
         require(isSplitCreator(_configIndex, msg.sender), "SplitPlugin: Only the creator can update the split config");
@@ -125,7 +126,7 @@ contract SplitPlugin is BasePlugin {
         for (uint8 i = 0; i < _percentages.length; i++) {
             totalPercentage += _percentages[i];
         }
-        require(totalPercentage == 100, "SplitPlugin: Percentages must add up to 100");
+        require(totalPercentage == MAX_PERCENTAGE, "SplitPlugin: Invalid percentages");
         require(
             _splitAddresses.length == _percentages.length,
             "SplitPlugin: Number of split addresses and percentages must be the same"

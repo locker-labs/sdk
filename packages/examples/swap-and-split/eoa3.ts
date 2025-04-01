@@ -21,6 +21,8 @@ import {
     createWalletClient,
     encodeFunctionData,
     http,
+    maxUint256,
+    parseAbi,
 } from "viem";
 
 dotenv.config();
@@ -38,10 +40,17 @@ if (!RPC_URL) {
 // CoW Protocol's GPv2Settlement contract on Sepolia
 // https://docs.cow.fi/tutorials-and-guides/smart-contracts/core
 const GPV2_SETTLEMENT = "0x9008D19f58AAbD9eD0D60971565AA8510560ab41";
+const GPV2_VAULT_RELAYER = "0xC92E8bdf79f0507f65a392b0ab4667716BFE0110"; // Vault Relayer on Sepolia
 
 // Example "USDC" on Sepolia
 const USDC_SEPOLIA = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 const WETH_SEPOLIA = "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14";
+
+// ERC20 approve function ABI
+const ERC20_ABI = parseAbi([
+    'function approve(address spender, uint256 amount) external returns (bool)',
+    'function allowance(address owner, address spender) external view returns (uint256)'
+]);
 
 /** Encode the `setPreSignature(orderUid, true)` call data. */
 function encodeSetPreSignature(orderUid: `0x${string}`): `0x${string}` {
@@ -62,6 +71,65 @@ function encodeSetPreSignature(orderUid: `0x${string}`): `0x${string}` {
         functionName: "setPreSignature",
         args: [orderUid, true],
     }) as `0x${string}`;
+}
+
+
+async function checkAndApproveToken(
+    walletAddress: `0x${string}`,
+    tokenAddress: `0x${string}`,
+    spender: `0x${string}`,
+    amount: bigint
+) {
+    console.log(`Checking allowance for token ${tokenAddress} to spender ${spender}...`);
+
+    const account = privateKeyToAccount(PRIVATE_KEY);
+
+    // Create a client for the Sepolia network
+    const client = createPublicClient({
+        chain: sepolia,
+        transport: http(RPC_URL)
+    });
+
+    // Create a wallet client to send the transaction
+    const walletClient = createWalletClient({
+        account,
+        chain: sepolia,
+        transport: http(RPC_URL)
+    });
+
+
+    // Check current allowance
+    const currentAllowance = await client.readContract({
+        address: tokenAddress,
+        abi: ERC20_ABI,
+        functionName: 'allowance',
+        args: [walletAddress, spender]
+    });
+
+    console.log(`Current allowance: ${currentAllowance.toString()}`);
+
+    // If allowance is less than required amount, approve
+    if (currentAllowance < amount) {
+        console.log(`Approving ${amount.toString()} tokens...`);
+
+        const hash = await walletClient.writeContract({
+            address: tokenAddress,
+            abi: ERC20_ABI,
+            functionName: 'approve',
+            args: [spender, maxUint256]
+        });
+
+        console.log(`Approval transaction hash: ${hash}`);
+
+        // Wait for confirmation
+        const receipt = await client.waitForTransactionReceipt({ hash });
+        console.log(`Approval transaction confirmed with status: ${receipt.status}`);
+
+        return hash;
+    } else {
+        console.log("Allowance is sufficient, no approval needed");
+        return null;
+    }
 }
 
 /** Sign and send a presigned order */
@@ -118,6 +186,18 @@ async function main() {
         const receiver = walletAddress; // Usually set to the sender address
         const chainId = SupportedChainId.SEPOLIA;
 
+        const sellAmount = "100000000000011"; // 0.000001 ETH
+        const buyAmount = "10011"; // Adjust based on the price you want
+
+        // Step 1: Approve the GPv2VaultRelayer to spend tokens
+        // This is the correct way to give CoW Protocol permission to use your tokens
+        await checkAndApproveToken(
+            walletAddress,
+            WETH_SEPOLIA as `0x${string}`,
+            GPV2_VAULT_RELAYER as `0x${string}`,
+            BigInt(sellAmount)
+        );
+
         // Create a COW Protocol OrderBookApi
         const orderBookApi = new OrderBookApi({
             chainId: chainId,
@@ -135,8 +215,8 @@ async function main() {
             receiver,
             sellToken: WETH_SEPOLIA, // This is ETH's virtual address
             buyToken: USDC_SEPOLIA,
-            sellAmount: "100000000000001", // 0.000001 ETH
-            buyAmount: "10001", // Adjust based on the price you want
+            sellAmount, // 0.000001 ETH
+            buyAmount, // Adjust based on the price you want
             validTo: MAX_VALID_TO_EPOCH,
             feeAmount: "0", // Fee is determined by the protocol
             kind: OrderKind.SELL,

@@ -26,7 +26,7 @@ export const SplitPluginAbi = [
     inputs: [
       { name: "_tokenAddress", type: "address", internalType: "address" },
       { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
-      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
+      { name: "_percentages", type: "uint32[]", internalType: "uint32[]" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -42,6 +42,13 @@ export const SplitPluginAbi = [
   },
   {
     type: "function",
+    name: "getSplitIndexes",
+    inputs: [{ name: "_user", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint256[]", internalType: "uint256[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "isSplitCreator",
     inputs: [
       { name: "_configIndex", type: "uint256", internalType: "uint256" },
@@ -53,9 +60,9 @@ export const SplitPluginAbi = [
   {
     type: "function",
     name: "onInstall",
-    inputs: [{ name: "_data", type: "bytes", internalType: "bytes" }],
+    inputs: [{ name: "data", type: "bytes", internalType: "bytes" }],
     outputs: [],
-    stateMutability: "pure",
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -462,7 +469,7 @@ export const SplitPluginAbi = [
     inputs: [
       { name: "_configIndex", type: "uint256", internalType: "uint256" },
       { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
-      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
+      { name: "_percentages", type: "uint32[]", internalType: "uint32[]" },
     ],
     outputs: [],
     stateMutability: "nonpayable",

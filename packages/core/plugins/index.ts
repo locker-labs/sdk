@@ -24,7 +24,11 @@ export interface ILockerSplitClient extends ILockerClient {
     receiverAddresses: Address[]
   ) => Promise<any>;
 
-  installSplitPlugin: () => Promise<any>;
+  installSplitPlugin: (
+    tokenAddress: Address,
+    percentages: number[],
+    receiverAddresses: Address[]
+  ) => Promise<any>;
 
   isSplitPluginInstalled: () => Promise<boolean>;
 
@@ -35,12 +39,6 @@ export interface ILockerSplitClient extends ILockerClient {
   split: (configIndex: number) => Promise<any>;
 
   deleteSplit: (configIndex: bigint) => Promise<any>;
-
-  setupSplit: (
-    tokenAddress: Address,
-    percentage: number[],
-    receiverAddresses: Address[]
-  ) => Promise<void>;
 }
 
 /**
@@ -128,15 +126,19 @@ export async function createLockerSplitClient(
       return res;
     },
 
-    async installSplitPlugin(): Promise<any> {
+    async installSplitPlugin(
+      tokenAddress,
+      percentages,
+      splitAddresses
+    ): Promise<any> {
       if (await isSplitPluginInstalled(splitLockerClient, chainId)) {
         console.log("Split plugin already installed.");
         return null;
       }
 
-      console.log('Installing Split Plugin...');
+      console.log("Installing Split Plugin...");
       const res = await splitLockerClient.installSplitPlugin({
-        args: [],
+        args: [tokenAddress, splitAddresses, percentages],
       });
 
       console.log("Waiting for installation confirmation...");
@@ -156,7 +158,7 @@ export async function createLockerSplitClient(
         return null;
       }
 
-      console.log('Uninstalling Split Plugin...');
+      console.log("Uninstalling Split Plugin...");
       const res = await splitLockerClient.uninstallPlugin({
         pluginAddress: chainToSplitPluginAddress[chain.id],
       });
@@ -207,7 +209,7 @@ export async function createLockerSplitClient(
         );
         return null;
       }
-      
+
       console.log("Deleting Split Config...");
       const res = await splitLockerClient.deleteSplitConfig({
         args: [configIndex],
@@ -215,38 +217,6 @@ export async function createLockerSplitClient(
       console.log("Waiting for deletion confirmation...");
       await waitForTransaction(res.hash, alchemyRpcUrl);
       return res;
-    },
-
-    async setupSplit(
-      tokenAddress: Address,
-      splitPercentages: number[],
-      splitRecipients: Address[]
-    ): Promise<void> {
-      if (!(await isSplitPluginInstalled(splitLockerClient, chainId))) {
-        // 1. Install Split Plugin
-        await (this as ILockerSplitClient).installSplitPlugin();
-        
-        // 2. Create Split Config
-        await (this as ILockerSplitClient).createSplit(
-          tokenAddress,
-          splitPercentages,
-          splitRecipients
-        );
-      } else {
-        console.log("Split Plugin already installed");
-        const configIndexes = await (this as ILockerSplitClient).getConfigs();
-        
-        if (configIndexes.length) {
-          console.log("Split Config already created");
-        } else {
-          // 2. Create Split Config
-          await (this as ILockerSplitClient).createSplit(
-            tokenAddress,
-            splitPercentages,
-            splitRecipients
-          );
-        }
-      }
     },
   };
 }

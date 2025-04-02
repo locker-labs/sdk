@@ -62,6 +62,7 @@ const bridgeName: IBridgeName = "cctp";
 
 // Create a Locker Client
 const splitClient = await createLockerSplitClient({
+  salt: BigInt(1),
   alchemyApiKey,
   chain: recipientChain,
   signer: LocalAccountSigner.privateKeyToAccountSigner(

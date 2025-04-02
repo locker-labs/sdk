@@ -52,7 +52,7 @@ contract SplitPlugin is BasePlugin {
 
     /// @dev Creates a split configuration for the user
     function createSplit(address _tokenAddress, address[] memory _splitAddresses, uint32[] memory _percentages)
-        external
+        public
     {
         require(_splitAddresses.length > 0, "SplitPlugin: No split addresses provided");
         require(_splitAddresses.length < MAX_TOKEN_CONFIGS, "SplitPlugin: Split addresses limit exceeded");
@@ -164,9 +164,20 @@ contract SplitPlugin is BasePlugin {
         return isCreator;
     }
 
-    function onInstall(bytes calldata _data) external pure override {}
+    /// @dev Returns the split config indexes for the user
+    function getSplitIndexes(address _user) external view returns (uint256[] memory) {
+        return splitConfigIndexes[_user];
+    }
 
-    function onUninstall(bytes calldata) external override {}
+    function _onInstall(bytes calldata data) internal override {
+        (address tokenAddress, address[] memory splitAddresses, uint32[] memory percentages) =
+            abi.decode(data, (address, address[], uint32[]));
+        createSplit(tokenAddress, splitAddresses, percentages);
+    }
+
+    function onUninstall(bytes calldata) external override {
+        delete splitConfigIndexes[msg.sender];
+    }
 
     function postExecutionHook(uint8, bytes calldata) external virtual override {
         uint256[] memory configIndexes = splitConfigIndexes[msg.sender];

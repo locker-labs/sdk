@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
-import { createModularAccountAlchemyClient, type AccountLoupeActions, type MultiOwnerModularAccount, type MultiOwnerPluginActions, type PluginManagerActions } from "@account-kit/smart-contracts";
+import { createModularAccountAlchemyClient, createMultiOwnerModularAccountClient, type AccountLoupeActions, type MultiOwnerModularAccount, type MultiOwnerPluginActions, type PluginManagerActions } from "@account-kit/smart-contracts";
 import { LocalAccountSigner } from "@aa-sdk/core";
-import { alchemy, sepolia, type AlchemySmartAccountClient } from "@account-kit/infra";
+import { alchemy, base, baseSepolia, sepolia, type AlchemySmartAccountClient } from "@account-kit/infra";
 import {
     encodeFunctionData,
     parseAbi,
@@ -14,6 +14,7 @@ import {
     toHex,
     encodeAbiParameters
 } from "viem";
+import { split } from "@aa-sdk/core";
 
 dotenv.config();
 
@@ -36,10 +37,14 @@ if (!RPC_URL) {
 // Example tokens on Sepolia
 const USDC_SEPOLIA = "0x1c7D4B196Cb0C7B01d743Fbc6116a902379C7238";
 const WETH_SEPOLIA = "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14";
+
+const USDC_BASE = "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
 const GPV2_VAULT_RELAYER = "0xC92E8bdf79f0507f65a392b0ab4667716BFE0110"; // Vault Relayer on Sepolia
 
-const tokenAddress = WETH_SEPOLIA as Address;
+const tokenAddress = USDC_SEPOLIA as Address;
 const spender = GPV2_VAULT_RELAYER as Address;
+
+const chain = sepolia;
 
 // ERC20 ABI with transfer function
 const ERC20_ABI = parseAbi([
@@ -49,10 +54,28 @@ const ERC20_ABI = parseAbi([
     'function balanceOf(address account) external view returns (uint256)'
 ]);
 
+const bundlerMethods = [
+    "eth_sendUserOperation",
+    "eth_estimateUserOperationGas",
+    "eth_getUserOperationReceipt",
+    "eth_getUserOperationByHash",
+    "eth_supportedEntryPoints",
+];
+
+
 // Initialize the Alchemy Modular Account client
-const maClient = await createModularAccountAlchemyClient({
-    transport: alchemy({ apiKey: ALCHEMY_API_KEY }),
-    chain: sepolia,
+const maClient = await createMultiOwnerModularAccountClient({
+    transport: split({
+        overrides: [
+            {
+                methods: bundlerMethods,
+                transport: http(RPC_URL),
+            },
+        ],
+        fallback: alchemy({ apiKey: ALCHEMY_API_KEY })
+    }),
+    // transport: alchemy({ apiKey: ALCHEMY_API_KEY }),
+    chain,
     signer: LocalAccountSigner.privateKeyToAccountSigner(PRIVATE_KEY),
 });
 
@@ -61,7 +84,7 @@ console.log("Smart Account address:", smartAccountAddress);
 
 // Create public client for reading contract state
 const client = createPublicClient({
-    chain: sepolia,
+    chain,
     transport: http(RPC_URL)
 });
 
@@ -78,10 +101,10 @@ console.log(`Transferring ${transferAmount.toString()} WETH to smart account...`
 const selector = keccak256(toHex('transfer(address,uint256)')).slice(0, 10);
 const suffixData = encodeAbiParameters(
     [
-        { name: "to", type: "address" },
-        { name: "amount", type: "uint256" },
+        { name: "dst", type: "address" },
+        { name: "wad", type: "uint256" },
     ],
-    [spender as Address, 1n]
+    ["0xF650429129aB74D1F2b647CD1D7E3b022f26181d", 1n]
 );
 const transferData = selector + suffixData.slice(2);
 
@@ -93,6 +116,7 @@ const transferResult = await maClient.sendUserOperation({
         value: BigInt(0),
     },
 });
+
 
 console.log(`Transfer userOp hash: ${transferResult.hash}`);
 

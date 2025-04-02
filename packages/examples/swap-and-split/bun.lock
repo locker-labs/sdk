@@ -4,9 +4,9 @@
     "": {
       "name": "swap-and-split",
       "dependencies": {
-        "@aa-sdk/core": "^4.19.0",
-        "@account-kit/infra": "^4.19.0",
-        "@account-kit/smart-contracts": "^4.19.0",
+        "@aa-sdk/core": "^4.21.0",
+        "@account-kit/infra": "^4.21.0",
+        "@account-kit/smart-contracts": "^4.21.0",
         "@cowprotocol/app-data": "^2.5.1",
         "@cowprotocol/contracts": "^1.7.0",
         "@cowprotocol/cow-sdk": "^5.10.2",
@@ -22,13 +22,13 @@
     },
   },
   "packages": {
-    "@aa-sdk/core": ["@aa-sdk/core@4.19.0", "", { "dependencies": { "abitype": "^0.8.3", "eventemitter3": "^5.0.1", "zod": "^3.22.4" }, "peerDependencies": { "viem": "^2.22.6" } }, "sha512-JCG1+GJtBCJYoFsqIngUN3xoJrX/cpddEBcuYauUdg+6r6U3ZcbY8jDVrUF5nemlogESDu3w2shfMUT9ckde+Q=="],
+    "@aa-sdk/core": ["@aa-sdk/core@4.21.0", "", { "dependencies": { "abitype": "^0.8.3", "eventemitter3": "^5.0.1", "zod": "^3.22.4" }, "peerDependencies": { "viem": "^2.22.6" } }, "sha512-4OJDRVvyEh/SVBaJLVp9l4Q660YA6oYur84KG1UwazZVBbsLldxcmVEKSsKv6GJTsNJ+qw2Jg4JKCE0z0LsevQ=="],
 
-    "@account-kit/infra": ["@account-kit/infra@4.19.0", "", { "dependencies": { "@aa-sdk/core": "^4.19.0", "@account-kit/logging": "^4.19.0", "eventemitter3": "^5.0.1", "zod": "^3.22.4" }, "optionalDependencies": { "alchemy-sdk": "^3.0.0" }, "peerDependencies": { "viem": "^2.22.6" } }, "sha512-5y1GebDdc2vFeaNG6FCfa60mjZOeSEMgQgtV/0YWNRS8MORLbwUqxQuZgr+/T/GITT6VRZ0vA+y4eYuvdSGCIw=="],
+    "@account-kit/infra": ["@account-kit/infra@4.21.0", "", { "dependencies": { "@aa-sdk/core": "^4.21.0", "@account-kit/logging": "^4.21.0", "eventemitter3": "^5.0.1", "zod": "^3.22.4" }, "optionalDependencies": { "alchemy-sdk": "^3.0.0" }, "peerDependencies": { "viem": "^2.22.6" } }, "sha512-9R/gSo+DRkgpKeoM2X9CR2bGdluC9nJUXq2gcp/VIvRvdBivV/qqQXk38DuhHU/BzRtk6f8lH0voaMeWPXHnXA=="],
 
-    "@account-kit/logging": ["@account-kit/logging@4.19.0", "", { "dependencies": { "@segment/analytics-next": "^1.74.0", "uuid": "^11.0.2" } }, "sha512-X6sAK62WQHzlQ/A9NiufEJBqM+K02M4dN/EGUhyRRgw7lGmrTUysqHvai7283xKTLP0FBGRuWLQ+h7FtyOOv2A=="],
+    "@account-kit/logging": ["@account-kit/logging@4.21.0", "", { "dependencies": { "@segment/analytics-next": "^1.74.0", "uuid": "^11.0.2" } }, "sha512-rNVrt7ZdBqDihs6mOPdjLxNnGYeK4779HObGJ+U6kbh+5EYCVB/Ns0nlGkYqaUHREe/V0FLyRSv4f7W1BIUl0w=="],
 
-    "@account-kit/smart-contracts": ["@account-kit/smart-contracts@4.19.0", "", { "dependencies": { "@aa-sdk/core": "^4.19.0", "@account-kit/infra": "^4.19.0" }, "peerDependencies": { "viem": "^2.22.6" } }, "sha512-Wb1Txh0bpwFJCsZIPk2wjqLJc3F3J+vNrmZh2CQjCxJ16Bl8RwInwVjaiFTX1thmtsqOoZDSdpGcgABwFI1TCQ=="],
+    "@account-kit/smart-contracts": ["@account-kit/smart-contracts@4.21.0", "", { "dependencies": { "@aa-sdk/core": "^4.21.0", "@account-kit/infra": "^4.21.0" }, "peerDependencies": { "viem": "^2.22.6" } }, "sha512-6Pj4OIe2gQPISRHrZsF/g1C9LraIj+BVx3cOr/D2Y6UyHIjSW1E9GqNyupknwfDaRr5/mk/izsCe0N5fOXtjgg=="],
 
     "@adraffy/ens-normalize": ["@adraffy/ens-normalize@1.11.0", "", {}, "sha512-/3DDPKHqqIqxUULp8yP4zODUY1i+2xvVWsv8A79xGWdCAG+8sb0hRh0Rk2QyOJUnnbyPUAZYcpBuRe3nS2OIUg=="],
 

@@ -10,9 +10,9 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "@aa-sdk/core": "^4.19.0",
-    "@account-kit/infra": "^4.19.0",
-    "@account-kit/smart-contracts": "^4.19.0",
+    "@aa-sdk/core": "^4.21.0",
+    "@account-kit/infra": "^4.21.0",
+    "@account-kit/smart-contracts": "^4.21.0",
     "@cowprotocol/app-data": "^2.5.1",
     "@cowprotocol/contracts": "^1.7.0",
     "@cowprotocol/cow-sdk": "^5.10.2",

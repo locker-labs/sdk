@@ -1,7 +1,8 @@
 {
   "workspaces": [
     "packages/core",
-    "packages/examples/bridge-and-split"
+    "packages/examples/bridge-and-split",
+    "packages/examples/swap-and-split"
   ],
   "version": "0.0.1",
   "private": true,

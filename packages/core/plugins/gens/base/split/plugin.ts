@@ -202,9 +202,9 @@ export type SplitPluginActions<
   ReadAndEncodeActions;
 
 const addresses = {
-  8453: "0x3e71215c32095fd32c458E683D557709c3cef2f9" as Address,
-  84532: "0x1F851DE0e959ad33193e5449EC4C23A66eAdbCC7" as Address,
-  11155111: "0x6edeB1ee954744512A1928B13e7C3Ce5D8Ad84fC" as Address,
+  8453: "0x2a4f50188850660D2C7D411EdA120CBb5D9A3EE4" as Address,
+  84532: "0x400932DCddAc89bEA6F2C261dA7aC1C427BdBf5b" as Address,
+  11155111: "0x12438c60e855ca58C34b1b2780d208D733D370CF" as Address,
 } as Record<number, Address>;
 
 export const SplitPlugin: Plugin<typeof SplitPluginAbi> = {
@@ -535,6 +535,20 @@ export const SplitPluginAbi = [
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "getSplitConfig",
+    inputs: [
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [
+      { name: "tokenAddress", type: "address", internalType: "address" },
+      { name: "splitAddresses", type: "address[]", internalType: "address[]" },
+      { name: "percentages", type: "uint32[]", internalType: "uint32[]" },
+      { name: "isSplitEnabled", type: "bool", internalType: "bool" },
+    ],
+    stateMutability: "view",
   },
   {
     type: "function",

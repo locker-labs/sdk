@@ -5,13 +5,13 @@ import { MultiOwnerPluginGenConfig } from "../multi-owner/config.js";
 import { SplitPluginAbi } from "./abi.js";
 
 export const SPLIT_PLUGIN_SEPOLIA =
-  "0x6edeB1ee954744512A1928B13e7C3Ce5D8Ad84fC" as Address;
+  "0x12438c60e855ca58C34b1b2780d208D733D370CF" as Address;
 
 export const SPLIT_PLUGIN_BASE =
-  "0x3e71215c32095fd32c458E683D557709c3cef2f9" as Address;
+  "0x2a4f50188850660D2C7D411EdA120CBb5D9A3EE4" as Address;
 
 export const SPLIT_PLUGIN_BASE_SEPOLIA =
-  "0x1F851DE0e959ad33193e5449EC4C23A66eAdbCC7" as Address;
+  "0x400932DCddAc89bEA6F2C261dA7aC1C427BdBf5b" as Address;
 
 export const chainToSplitPluginAddress: Record<number, Address> = {
   [sepolia.id]: SPLIT_PLUGIN_SEPOLIA,

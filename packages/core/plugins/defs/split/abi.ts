@@ -42,6 +42,20 @@ export const SplitPluginAbi = [
   },
   {
     type: "function",
+    name: "getSplitConfig",
+    inputs: [
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [
+      { name: "tokenAddress", type: "address", internalType: "address" },
+      { name: "splitAddresses", type: "address[]", internalType: "address[]" },
+      { name: "percentages", type: "uint32[]", internalType: "uint32[]" },
+      { name: "isSplitEnabled", type: "bool", internalType: "bool" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getSplitIndexes",
     inputs: [{ name: "_user", type: "address", internalType: "address" }],
     outputs: [{ name: "", type: "uint256[]", internalType: "uint256[]" }],

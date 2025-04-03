@@ -48,9 +48,9 @@ const usdcAmount = 10000; // 0.01 USDC
 // Split config
 const splitRecipients = [
   "0xd7F723f8EDeC8D6D62caa4Ecc2b5Ca1292618355",
-  "0x1ECF3f51A771983C150b3cB4A2162E89c0A046Fc"
+  "0x1ECF3f51A771983C150b3cB4A2162E89c0A046Fc",
 ] as Address[];
-const splitPercentages = [95, 5];
+const splitPercentages = [BigInt(9500000), BigInt(500000)]; // Recipient 0 gets 95%, Recipient 1 gets 5%
 
 /*
  * Implementation
@@ -62,7 +62,7 @@ const bridgeName: IBridgeName = "cctp";
 
 // Create a Locker Client
 const splitClient = await createLockerSplitClient({
-  salt: BigInt(1),
+  salt: BigInt(0),
   alchemyApiKey,
   chain: recipientChain,
   signer: LocalAccountSigner.privateKeyToAccountSigner(
@@ -70,12 +70,14 @@ const splitClient = await createLockerSplitClient({
   ),
 });
 
+// console.log(await splitClient.installedPlugins({}));
+
 // Get address for the Locker Client. This is the address that will receive the token then split it.
 const recipientAddress = splitClient.getAddress();
 console.log(`Recipient address: ${recipientAddress}`);
 
 // One time configuration of Locker Split Client
-await splitClient.setupSplit(
+await splitClient.installSplitPlugin(
   recipientChainToken,
   splitPercentages,
   splitRecipients
@@ -109,12 +111,6 @@ async function bridgeAndSplit() {
 }
 
 async function cleanup() {
-  // Cleanup: uninstall split plugin and delete split configs
-  const configIndexes = await splitClient.getConfigs();
-  for (const index of configIndexes) {
-    await splitClient.deleteSplit(index);
-  }
-
   await splitClient.uninstallSplitPlugin();
 }
 

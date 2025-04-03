@@ -1,17 +1,17 @@
 import type { PluginConfig } from "@account-kit/plugingen";
-import { type Address } from "viem";
+import { type Address, parseAbiParameters } from "viem";
 import { base, baseSepolia, sepolia } from "viem/chains";
 import { MultiOwnerPluginGenConfig } from "../multi-owner/config.js";
 import { SplitPluginAbi } from "./abi.js";
 
 export const SPLIT_PLUGIN_SEPOLIA =
-  "0x1ef5f1E4d06AD60e9A3FD64D00782c21523F7317" as Address;
+  "0x12438c60e855ca58C34b1b2780d208D733D370CF" as Address;
 
 export const SPLIT_PLUGIN_BASE =
-  "0x981656a00aB861498E2DCE2a94b1dd416B684844" as Address;
+  "0x2a4f50188850660D2C7D411EdA120CBb5D9A3EE4" as Address;
 
 export const SPLIT_PLUGIN_BASE_SEPOLIA =
-  "0x9fBc03780c1AAc814E6BAD2C35Af4f55fCb31D69" as Address;
+  "0x400932DCddAc89bEA6F2C261dA7aC1C427BdBf5b" as Address;
 
 export const chainToSplitPluginAddress: Record<number, Address> = {
   [sepolia.id]: SPLIT_PLUGIN_SEPOLIA,
@@ -28,7 +28,9 @@ export const SplitPluginGenConfig: PluginConfig = {
     [baseSepolia.id]: SPLIT_PLUGIN_BASE_SEPOLIA,
   },
   installConfig: {
-    initAbiParams: [],
+    initAbiParams: parseAbiParameters(
+      "address tokenAddess, address[] splitAddresses, uint256[] percentages"
+    ),
 
     dependencies: [
       {

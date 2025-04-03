@@ -108,7 +108,11 @@ type ExecutionActions<
   ) => Promise<SendUserOperationResult<TEntryPointVersion>>;
 };
 
-type InstallArgs = [];
+type InstallArgs = [
+  { type: "address"; name: "tokenAddess" },
+  { type: "address[]"; name: "splitAddresses" },
+  { type: "uint256[]"; name: "percentages" },
+];
 
 export type InstallSplitPluginParams = {
   args: Parameters<typeof encodeAbiParameters<InstallArgs>>[1];
@@ -198,9 +202,9 @@ export type SplitPluginActions<
   ReadAndEncodeActions;
 
 const addresses = {
-  8453: "0x981656a00aB861498E2DCE2a94b1dd416B684844" as Address,
-  84532: "0x9fBc03780c1AAc814E6BAD2C35Af4f55fCb31D69" as Address,
-  11155111: "0x1ef5f1E4d06AD60e9A3FD64D00782c21523F7317" as Address,
+  8453: "0x2a4f50188850660D2C7D411EdA120CBb5D9A3EE4" as Address,
+  84532: "0x400932DCddAc89bEA6F2C261dA7aC1C427BdBf5b" as Address,
+  11155111: "0x12438c60e855ca58C34b1b2780d208D733D370CF" as Address,
 } as Record<number, Address>;
 
 export const SplitPlugin: Plugin<typeof SplitPluginAbi> = {
@@ -387,7 +391,14 @@ export const splitPluginActions: <
 
     return installPlugin_(client, {
       pluginAddress,
-      pluginInitData: encodeAbiParameters([], params.args),
+      pluginInitData: encodeAbiParameters(
+        [
+          { type: "address", name: "tokenAddess" },
+          { type: "address[]", name: "splitAddresses" },
+          { type: "uint256[]", name: "percentages" },
+        ],
+        params.args,
+      ),
       dependencies,
       overrides,
       account,
@@ -438,7 +449,7 @@ export const SplitPluginExecutionFunctionAbi = [
     inputs: [
       { name: "_tokenAddress", type: "address", internalType: "address" },
       { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
-      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
+      { name: "_percentages", type: "uint32[]", internalType: "uint32[]" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -467,7 +478,7 @@ export const SplitPluginExecutionFunctionAbi = [
     inputs: [
       { name: "_configIndex", type: "uint256", internalType: "uint256" },
       { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
-      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
+      { name: "_percentages", type: "uint32[]", internalType: "uint32[]" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -511,7 +522,7 @@ export const SplitPluginAbi = [
     inputs: [
       { name: "_tokenAddress", type: "address", internalType: "address" },
       { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
-      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
+      { name: "_percentages", type: "uint32[]", internalType: "uint32[]" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -527,6 +538,27 @@ export const SplitPluginAbi = [
   },
   {
     type: "function",
+    name: "getSplitConfig",
+    inputs: [
+      { name: "_configIndex", type: "uint256", internalType: "uint256" },
+    ],
+    outputs: [
+      { name: "tokenAddress", type: "address", internalType: "address" },
+      { name: "splitAddresses", type: "address[]", internalType: "address[]" },
+      { name: "percentages", type: "uint32[]", internalType: "uint32[]" },
+      { name: "isSplitEnabled", type: "bool", internalType: "bool" },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getSplitIndexes",
+    inputs: [{ name: "_user", type: "address", internalType: "address" }],
+    outputs: [{ name: "", type: "uint256[]", internalType: "uint256[]" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "isSplitCreator",
     inputs: [
       { name: "_configIndex", type: "uint256", internalType: "uint256" },
@@ -538,9 +570,9 @@ export const SplitPluginAbi = [
   {
     type: "function",
     name: "onInstall",
-    inputs: [{ name: "_data", type: "bytes", internalType: "bytes" }],
+    inputs: [{ name: "data", type: "bytes", internalType: "bytes" }],
     outputs: [],
-    stateMutability: "pure",
+    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -947,7 +979,7 @@ export const SplitPluginAbi = [
     inputs: [
       { name: "_configIndex", type: "uint256", internalType: "uint256" },
       { name: "_splitAddresses", type: "address[]", internalType: "address[]" },
-      { name: "_percentages", type: "uint8[]", internalType: "uint8[]" },
+      { name: "_percentages", type: "uint32[]", internalType: "uint32[]" },
     ],
     outputs: [],
     stateMutability: "nonpayable",

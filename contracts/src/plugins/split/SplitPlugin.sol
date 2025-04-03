@@ -103,7 +103,7 @@ contract SplitPlugin is BasePlugin {
         SplitConfig memory config = splitConfigs[_configIndex];
         IERC20 token = IERC20(config.tokenAddress);
         uint256 totalSplitAmount = token.balanceOf(address(msg.sender));
-        if (!config.isSplitEnabled || config.minTokenAmount < totalSplitAmount) {
+        if (!config.isSplitEnabled || config.minTokenAmount > totalSplitAmount) {
             return;
         } 
 

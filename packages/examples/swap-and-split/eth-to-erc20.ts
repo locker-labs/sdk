@@ -61,7 +61,7 @@ const chain = base
 const eChain = EChain.BASE
 
 const sendToken = WETH_BASE
-const sellAmount = "1000000000111"; // 0.000001 ETH
+const sellAmount = "1000000001111"; // 0.000001 ETH
 
 const buyToken = USDC_BASE
 const buyAmount = "10"; // Adjust based on the price you want
@@ -100,8 +100,34 @@ await splitClient.setupSplit(
     splitRecipients
 );
 
-// Set token allowance
-console.log(`Checking allowance for token ${sendToken} to spender ${GPV2_VAULT_RELAYER}...`);
+// First, convert ETH to WETH by calling the deposit function
+console.log(`Converting ${sellAmount} ETH to WETH...`);
+
+// Define WETH deposit ABI
+const wethDepositAbi = parseAbi([
+    "function deposit() payable"
+]);
+
+// Encode the deposit function call
+const depositData = encodeFunctionData({
+    abi: wethDepositAbi,
+    functionName: 'deposit'
+});
+
+// Send deposit userOp to WETH contract with ETH value
+const depositResult = await splitClient.sendUserOps(
+    sendToken,
+    depositData as Address,
+    BigInt(sellAmount)
+);
+console.log(`Deposit userOp hash: ${depositResult.hash}`);
+
+// Sleep for 10 seconds, so userOp has time to settle
+console.log(`Sleeping for a few seconds so deposit has time to settle...`);
+await new Promise(resolve => setTimeout(resolve, 10_000));
+
+// Now proceed with token allowance
+console.log(`Setting allowance for WETH to spender ${GPV2_VAULT_RELAYER}...`);
 const selector = keccak256(toHex('approve(address,uint256)')).slice(0, 10);
 const suffixData = encodeAbiParameters(
     [

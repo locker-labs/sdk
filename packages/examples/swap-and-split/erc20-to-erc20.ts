@@ -2,30 +2,23 @@ import {
     OrderBookApi,
     OrderKind,
     SigningScheme,
-    SupportedChainId,
     type UnsignedOrder,
     BuyTokenDestination,
     MAX_VALID_TO_EPOCH,
     SellTokenSource,
     OrderSigningUtils,
-    WRAPPED_NATIVE_CURRENCIES,
     buildAppData
 } from '@cowprotocol/cow-sdk';
 import type { Order, OrderBalance } from "@cowprotocol/contracts";
 import * as dotenv from "dotenv";
-import { createModularAccountAlchemyClient } from "@account-kit/smart-contracts";
 import { LocalAccountSigner } from "@aa-sdk/core";
-import { alchemy, base, sepolia } from "@account-kit/infra";
+import { base } from "@account-kit/infra";
 import {
-    encodeFunctionData,
-    parseAbi,
     keccak256,
     toHex,
     encodeAbiParameters,
     type Address,
     maxUint256,
-    http,
-    createPublicClient
 } from "viem";
 import { createLockerSplitClient, EChain } from '@locker-labs/sdk';
 

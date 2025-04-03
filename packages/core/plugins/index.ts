@@ -20,13 +20,13 @@ export interface ILockerSplitClient extends ILockerClient {
 
   createSplit: (
     tokenAddress: Address,
-    percentage: number[],
+    percentage: bigint[],
     receiverAddresses: Address[]
   ) => Promise<any>;
 
   installSplitPlugin: (
     tokenAddress: Address,
-    percentages: number[],
+    percentages: bigint[],
     receiverAddresses: Address[]
   ) => Promise<any>;
 
@@ -108,7 +108,7 @@ export async function createLockerSplitClient(
     },
     async createSplit(
       tokenAddress: string,
-      percentage: number[],
+      percentage: bigint[],
       receiverAddresses: string[]
     ): Promise<any> {
       if (!(await isSplitPluginInstalled(splitLockerClient, chainId))) {

@@ -98,19 +98,22 @@ contract SplitPlugin is BasePlugin {
         SplitConfig memory config = splitConfigs[_configIndex];
         IERC20 token = IERC20(config.tokenAddress);
         uint256 totalSplitAmount = token.balanceOf(address(msg.sender));
-        if (!config.isSplitEnabled || totalSplitAmount < MAX_PERCENTAGE) {
+        if (!config.isSplitEnabled) {
             return;
         }
 
         for (uint256 i = 0; i < config.splitAddresses.length; i++) {
+            uint256 minTokenAmount = MAX_PERCENTAGE / config.percentages[i];
+            require(
+                minTokenAmount < totalSplitAmount,
+                "SplitPlugin: Not enough tokens to split"
+            );
             uint256 amount = (totalSplitAmount * config.percentages[i]) / MAX_PERCENTAGE;
-            if (amount > 0) {
-                IPluginExecutor(msg.sender).executeFromPluginExternal(
-                    config.tokenAddress,
-                    0,
-                    abi.encodeWithSelector(IERC20.transfer.selector, config.splitAddresses[i], amount)
-                );
-            }
+            IPluginExecutor(msg.sender).executeFromPluginExternal(
+                config.tokenAddress,
+                0,
+                abi.encodeWithSelector(IERC20.transfer.selector, config.splitAddresses[i], amount)
+            );
         }
 
         emit SplitExecuted(_configIndex);
@@ -162,6 +165,20 @@ contract SplitPlugin is BasePlugin {
             }
         }
         return isCreator;
+    }
+
+    function getSplitConfig(uint256 _configIndex)
+        external
+        view
+        returns (
+            address tokenAddress,
+            address[] memory splitAddresses,
+            uint32[] memory percentages,
+            bool isSplitEnabled
+        )
+    {
+        SplitConfig memory config = splitConfigs[_configIndex];
+        return (config.tokenAddress, config.splitAddresses, config.percentages, config.isSplitEnabled);
     }
 
     /// @dev Returns the split config indexes for the user

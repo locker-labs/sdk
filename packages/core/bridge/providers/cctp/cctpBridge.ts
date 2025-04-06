@@ -1,4 +1,4 @@
-import { Connection, Keypair, PublicKey } from '@solana/web3.js';
+import { Connection, Keypair, PublicKey, type Ed25519Keypair } from '@solana/web3.js';
 import { hexToBytes, keccak256, toHex, encodeAbiParameters, type Address } from 'viem';
 import * as spl from '@solana/spl-token';
 import * as anchor from "@coral-xyz/anchor";
@@ -8,6 +8,8 @@ import { evmAddressToBytes32, findOrCreateUserTokenAccount, getDepositForBurnPda
 import type { IBridgeFromSolanaParams, IBridgeFromSolanaResponse } from '../../types.js';
 import type { ILockerClient } from '../../../accounts/types.js';
 import { USDC } from '../../../accounts/tokens.js';
+import { Wallet } from '../../helpers.js';
+import { createLockerSolanaSigner } from '../../lockerSolanaSigner.js';
 
 export interface ICctpBridgeFromSolanaResponse extends IBridgeFromSolanaResponse {
     attestation: string;
@@ -29,6 +31,8 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         solanaRpcUrl
     } = params;
 
+    const lockerSolanaSigner = await createLockerSolanaSigner(solanaSigner);
+
     const {
         irisApiUrl,
     } = CIRCLE_CONFIG[solanaChain];
@@ -46,11 +50,11 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
         throw new Error(`Cannot bridge token ${solanaTokenAddress} with CCTP in on ${solanaChain}. Expected USDC at ${expectedTokenAddress}.`);
     }
 
-    // Create a new Provider based on the signer's Keypair
+    // Create a new Provider based on the signer
     const connection = new Connection(solanaRpcUrl);
     const provider = new anchor.AnchorProvider(
         connection,
-        new anchor.Wallet(solanaSigner),
+        new Wallet(new Keypair({ publicKey: lockerSolanaSigner.publicKey } as unknown as Ed25519Keypair)),
         {}
     );
     anchor.setProvider(provider);
@@ -74,7 +78,7 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
 
     // Anchor RPC call
     console.log('Depositing for burn...');
-    const depositForBurnTx = await tokenMessengerMinterProgram.methods
+    const tx = await tokenMessengerMinterProgram.methods
         .depositForBurn({
             amount: new anchor.BN(amount),
             destinationDomain: destinationDomainId,
@@ -97,7 +101,14 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
             tokenProgram: spl.TOKEN_PROGRAM_ID,
         })
         .signers([messageSentEventAccountKeypair])
-        .rpc();
+        .transaction();
+
+    tx.feePayer = lockerSolanaSigner.publicKey;
+    tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+    tx.partialSign(messageSentEventAccountKeypair);
+    const signedTx = await lockerSolanaSigner.addSignature(tx);
+    const depositForBurnTx = await connection.sendRawTransaction(signedTx.serialize());
 
     // Fetch attestation from the Attestation Service
     console.log(`Fetching attestation for tx ${depositForBurnTx}`);
@@ -106,7 +117,7 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
 
     // (Optional) reclaim event account rent
     console.log('Reclaiming event account...');
-    const reclaimEventAccountTx = await messageTransmitterProgram.methods
+    const reclaimTx = await messageTransmitterProgram.methods
         .reclaimEventAccount({
             attestation: Buffer.from(attestation.replace("0x", ""), "hex"),
         })
@@ -115,7 +126,11 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
             messageTransmitter: pdas.messageTransmitterAccount.publicKey,
             messageSentEventData: messageSentEventAccountKeypair.publicKey,
         })
-        .rpc();
+        .transaction();
+    reclaimTx.feePayer = lockerSolanaSigner.publicKey;
+    reclaimTx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+    const signedReclaimTx = await lockerSolanaSigner.addSignature(reclaimTx);
+    const reclaimEventAccountTx = await connection.sendRawTransaction(signedReclaimTx.serialize());
 
     return {
         depositTx: depositForBurnTx,

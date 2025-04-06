@@ -1,7 +1,10 @@
 import * as anchor from "@coral-xyz/anchor";
-import { PublicKey, Connection } from '@solana/web3.js';
-import fetch from 'node-fetch';
-import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
+import { PublicKey, Connection, Keypair, Transaction } from '@solana/web3.js';
+import {
+    getAssociatedTokenAddress,
+    createAssociatedTokenAccount,
+    createAssociatedTokenAccountInstruction,
+} from "@solana/spl-token";
 import type { Address } from "viem";
 
 import { type MessageTransmitter } from './target/types/message_transmitter';
@@ -11,22 +14,31 @@ import * as TokenMessengerMinterIDL from './target/idl/token_messenger_minter.js
 import * as evmMessageTransmitterAbi from './abi/evm/message_transmitter.json';
 import { EChain } from "../../../accounts/tokens.js";
 import { CCTP_DOMAIN_IDS, CCTP_EVM_CONTRACTS } from './cctpConstants.js';
-import type { IBridgeFromSolanaParams } from "../../types.js";
+import type { IBridgeFromSolanaParams, ISolanaSigner } from "../../types.js";
 /**
  * Returns the Anchor programs for MessageTransmitter + TokenMessengerMinter.
  */
 export const getPrograms = (provider: anchor.AnchorProvider) => {
+    let messageTransmitterIDL = JSON.parse(JSON.stringify(MessageTransmitterIDL));
+    if (messageTransmitterIDL.default) {
+        messageTransmitterIDL = messageTransmitterIDL.default;
+    }
+
+    let tokenMessengerMinterIDL = JSON.parse(JSON.stringify(TokenMessengerMinterIDL));
+    if (tokenMessengerMinterIDL.default) {
+        tokenMessengerMinterIDL = tokenMessengerMinterIDL.default;
+    }
     // Initialize contracts
     // Initialize workspace with explicit program IDs from devnet
     const messageTransmitterProgram = new anchor.Program(
         // You'll need to import these IDLs
-        MessageTransmitterIDL as anchor.Idl,
+        messageTransmitterIDL as anchor.Idl,
         new PublicKey("CCTPmbSD7gX1bxKPAmg77w8oFzNFpaQiQUWD43TKaecd"),
         provider
     ) as anchor.Program<MessageTransmitter>;
 
     const tokenMessengerMinterProgram = new anchor.Program(
-        TokenMessengerMinterIDL as anchor.Idl,
+        tokenMessengerMinterIDL as anchor.Idl,
         new PublicKey("CCTPiPYPc6AsJuwueEnWgSgucamXDZwBd53dQ11YiKX3"),
         provider
     ) as anchor.Program<TokenMessengerMinter>;
@@ -72,8 +84,14 @@ export async function getMessages(txHash: string, irisApiUrl: string, solanaChai
         !attestationResponse.messages ||
         attestationResponse.messages?.[0]?.attestation === 'PENDING'
     ) {
-        const response = await fetch(`${irisApiUrl}/messages/${solanaDomain}/${txHash}`);
-        attestationResponse = await response.json();
+        try {
+            const response = await fetch(`${irisApiUrl}/messages/${solanaDomain}/${txHash}`, { method: "GET" });
+            attestationResponse = await response.json();
+        } catch (e) {
+            console.error('Error fetching attestation data:', e);
+            attestationResponse = { error: true };
+        }
+
         // Wait 2 seconds to avoid potential rate-limiting
         if (
             attestationResponse.error ||
@@ -123,20 +141,63 @@ export async function findOrCreateUserTokenAccount(
     const { solanaSigner, solanaTokenAddress, solanaRpcUrl } = params;
     const solanaTokenPublicKey = new PublicKey(solanaTokenAddress);
     const connection = new Connection(solanaRpcUrl);
+    const signerPublicKey = getPublicKey(solanaSigner);
 
     try {
         // Get the associated token account address
         const tokenAccount = await getAssociatedTokenAddress(
             solanaTokenPublicKey,
-            solanaSigner.publicKey
+            signerPublicKey,
         );
 
+        // Check if tokenAccount exists
+        const accountInfo = await connection.getAccountInfo(tokenAccount);
+
+        if (accountInfo !== null) {
+            console.log("tokenAccount:", tokenAccount.toBase58());
+            return tokenAccount;
+        }
+
+        // If tokenAccount doesn't exist, create it
+        let txSignature;
+        if (solanaSigner instanceof Keypair) {
+            txSignature = await createAssociatedTokenAccount(
+                connection,
+                solanaSigner, // fee payer and signer
+                solanaTokenPublicKey, // mint address
+                signerPublicKey // owner of the token account
+            );
+        } else {
+            const instruction = createAssociatedTokenAccountInstruction(
+                signerPublicKey, // payer
+                tokenAccount, // ATA address
+                signerPublicKey, // token owner
+                solanaTokenPublicKey, // mint address
+            );
+            const tx = new Transaction().add(instruction);
+            tx.feePayer = signerPublicKey;
+            tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+
+            const signedTx = await solanaSigner.addSignature(tx);
+            txSignature = await connection.sendRawTransaction(signedTx.serialize());
+        }
+        console.log("Transaction signature:", txSignature);
+        console.log("Created token account:", tokenAccount.toBase58());
         // Check if the account exists
-        await getAccount(connection, tokenAccount);
+        // TODO: add a while loop to wait for the transaction to be confirmed and the account to be created
 
         return tokenAccount;
     } catch (error) {
+        console.error("Error finding or creating token account:", error);
         throw new Error("Token account not found");
+    }
+}
+
+export function getPublicKey(signer: ISolanaSigner): PublicKey {
+    if (signer instanceof Keypair) {
+        return signer.publicKey;
+    } else {
+        return new PublicKey(signer.address);
     }
 }
 

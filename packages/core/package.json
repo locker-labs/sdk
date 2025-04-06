@@ -86,6 +86,7 @@
     }
   },
   "dependencies": {
+    "@account-kit/signer": "^4.20.1",
     "@account-kit/smart-contracts": "^4.20.1",
     "@coral-xyz/anchor": "^0.28.0",
     "@solana/spl-token": "^0.3.8",

@@ -1,5 +1,5 @@
 {
-  "workspaces": ["packages/core", "packages/examples/bridge-and-split"],
+  "workspaces": ["packages/core", "packages/examples/alchemy-solana-signer", "packages/examples/bridge-and-split"],
   "version": "0.0.1",
   "private": true,
   "author": "Locker",

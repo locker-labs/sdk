@@ -13,6 +13,18 @@ import { adaptLockerChain2AlchemyChain, waitForTransaction } from "../accounts/h
 import { SplitPluginAbi } from "./defs/split/abi.js";
 import type { ILockerClient, ILockerClientParams } from "../accounts/types.js";
 
+const MAX_PERCENTAGE = 100_000_000;
+
+function convertPercentage(percentage: number): bigint {
+  if (percentage >= 1) {
+    throw new Error("Percentage must be less than 1");
+  }
+  if (percentage < 0.00000001) {
+    throw new Error("Percentage must be at least 0.00000001");
+  }
+  return BigInt(Math.floor(percentage * MAX_PERCENTAGE));
+}
+
 export interface ILockerSplitClient extends ILockerClient {
   getAddress: () => Address;
 
@@ -20,13 +32,13 @@ export interface ILockerSplitClient extends ILockerClient {
 
   createSplit: (
     tokenAddress: Address,
-    percentage: bigint[],
+    percentages: number[],
     receiverAddresses: Address[]
   ) => Promise<any>;
 
   installSplitPlugin: (
     tokenAddress: Address,
-    percentages: bigint[],
+    percentages: number[],
     receiverAddresses: Address[]
   ) => Promise<any>;
 
@@ -108,17 +120,17 @@ export async function createLockerSplitClient(
     },
     async createSplit(
       tokenAddress: string,
-      percentage: bigint[],
+      percentages: number[],
       receiverAddresses: string[]
     ): Promise<any> {
       if (!(await isSplitPluginInstalled(splitLockerClient, chainId))) {
         console.log("Split plugin not installed.");
         return null;
       }
-
+      const convertedPercentages = percentages.map(convertPercentage);
       console.log("Creating Split Config...");
       const res = await splitLockerClient.createSplit({
-        args: [tokenAddress, receiverAddresses, percentage],
+        args: [tokenAddress, receiverAddresses, convertedPercentages],
       });
       console.log("Waiting for creation confirmation...");
       await waitForTransaction(res.hash, alchemyRpcUrl);
@@ -135,10 +147,10 @@ export async function createLockerSplitClient(
         console.log("Split plugin already installed.");
         return null;
       }
-
+      const convertedPercentages = percentages.map(convertPercentage);
       console.log("Installing Split Plugin...");
       const res = await splitLockerClient.installSplitPlugin({
-        args: [tokenAddress, splitAddresses, percentages],
+        args: [tokenAddress, splitAddresses, convertedPercentages],
       });
 
       console.log("Waiting for installation confirmation...");

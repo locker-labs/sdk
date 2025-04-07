@@ -50,7 +50,7 @@ const splitRecipients = [
   "0xd7F723f8EDeC8D6D62caa4Ecc2b5Ca1292618355",
   "0x1ECF3f51A771983C150b3cB4A2162E89c0A046Fc",
 ] as Address[];
-const splitPercentages = [BigInt(9500000), BigInt(500000)]; // Recipient 0 gets 95%, Recipient 1 gets 5%
+const splitPercentages = [0.95, 0.05]; // Recipient 0 gets 95%, Recipient 1 gets 5%
 
 /*
  * Implementation

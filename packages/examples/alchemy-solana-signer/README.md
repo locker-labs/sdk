@@ -1,44 +1,31 @@
-See [accountkit.alchemy.com](https://accountkit.alchemy.com/) for the most up to date documentation!
+# alchemy-solana-signer
 
-- [quick start guide](https://accountkit.alchemy.com/react/quickstart) to Account Kit
-- [demo](https://demo.alchemy.com/)
+Bridge 0.01 USDC from Solana Devnet to Base Sepolia using Alchemy Solana Signer. Then split the token using Locker Split Plugin.
 
-![image](https://github.com/user-attachments/assets/b7a820e7-1927-4bee-8eaa-52ca4af0f87a)
-
-This is a [Next.js](https://nextjs.org/) template bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
-## Getting Started
-
-First, download the template:
+### Install dependencies
 
 ```bash
-yarn create next-app account-kit-app -e https://github.com/avarobinson/account-kit-quickstart
+bun install
 ```
 
-### Get you alchemy api key
+### Setup environment variables
+
+```bash
+cp .env.example .env.local
+```
 
 - Create a new embedded accounts configuration for an alchemy app in your [dashboard](https://dashboard.alchemy.com/accounts)
-- Replace the api key in the config.ts file
+- Add alchemy api key in NEXT_PUBLIC_ALCHEMY_API_KEY in the .env.local file
+- Add an evm private key in NEXT_PUBLIC_EVM_PRIVATE_KEY in the .env.local file
 
-### Run the app
+### To run:
 
 ```bash
-yarn dev
+bun run dev
 ```
 
-Follow this [quick start guide](https://accountkit.alchemy.com/) for more details!
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+- Go to (localhost:3000)[http://localhost:3000]
+- Sign in with your email. An alchemy signer will be created for you
+- Add SOL (devnet)[https://faucet.solana.com/] and USDC (Solana Devnet)[https://faucet.circle.com/] to the displayed Solana Signer Address
+- (optional) Update split config (splitRecipients and splitPercentages) in app/bridge-and-split.tsx
+- Click Bridge and Split

@@ -20,6 +20,7 @@ export default function Signer() {
     return <>
       <div>Signer status: {status?.status}</div>
       <div>Solana signer initialized: {!!solanaSigner ? 'yes' : 'no'}</div>
+      {!!solanaSigner && <div>Solana signer address: {solanaSigner?.address}</div>}
       {/* @ts-ignore */}
       {solanaSigner && <BridgeAndSplit solanaSigner={solanaSigner} />}
     </>

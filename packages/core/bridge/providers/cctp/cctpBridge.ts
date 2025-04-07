@@ -41,9 +41,7 @@ export async function cctpBridgeTokenFromSolana(params: IBridgeFromSolanaParams)
     const destinationDomainId = CCTP_DOMAIN_IDS[recipientChain];
 
     // SPL token account for the user
-    const userTokenAccount = await findOrCreateUserTokenAccount(
-        params
-    );
+    const userTokenAccount = await findOrCreateUserTokenAccount({ ...params, lockerSolanaSigner });
 
     const expectedTokenAddress = USDC[solanaChain];
     if (solanaTokenAddress !== expectedTokenAddress) {

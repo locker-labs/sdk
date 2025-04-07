@@ -2,11 +2,11 @@ import * as anchor from "@coral-xyz/anchor";
 import { PublicKey, Connection, Keypair, Transaction } from '@solana/web3.js';
 import {
     getAssociatedTokenAddress,
-    createAssociatedTokenAccount,
     createAssociatedTokenAccountInstruction,
 } from "@solana/spl-token";
 import type { Address } from "viem";
 
+import type { LockerSolanaSigner } from "../../lockerSolanaSigner.js";
 import { type MessageTransmitter } from './target/types/message_transmitter';
 import { type TokenMessengerMinter } from './target/types/token_messenger_minter';
 import * as MessageTransmitterIDL from './target/idl/message_transmitter.json';
@@ -135,56 +135,76 @@ export function findProgramAddress(
     return { publicKey, bump };
 }
 
+/**
+ * Finds or creates a token account for the user.
+ * @returns The public key of the token account.
+ */
 export async function findOrCreateUserTokenAccount(
-    params: IBridgeFromSolanaParams
+    params: IBridgeFromSolanaParams & { lockerSolanaSigner: LockerSolanaSigner }
 ): Promise<PublicKey> {
-    const { solanaSigner, solanaTokenAddress, solanaRpcUrl } = params;
+    const { solanaTokenAddress, solanaRpcUrl, lockerSolanaSigner } = params;
     const solanaTokenPublicKey = new PublicKey(solanaTokenAddress);
     const connection = new Connection(solanaRpcUrl);
-    const signerPublicKey = getPublicKey(solanaSigner);
+    const signerPublicKey = lockerSolanaSigner.publicKey;
 
     try {
         // Get the associated token account address
-        const tokenAccount = await getAssociatedTokenAddress(
+        let tokenAccount = await getAssociatedTokenAddress(
             solanaTokenPublicKey,
             signerPublicKey,
         );
 
         // Check if tokenAccount exists
-        const accountInfo = await connection.getAccountInfo(tokenAccount);
+        let accountInfo = await connection.getAccountInfo(tokenAccount);
 
         if (accountInfo !== null) {
             console.log("tokenAccount:", tokenAccount.toBase58());
             return tokenAccount;
         }
+        console.log("Token account not found, creating a new one...");
 
         // If tokenAccount doesn't exist, create it
-        let txSignature;
-        if (solanaSigner instanceof Keypair) {
-            txSignature = await createAssociatedTokenAccount(
-                connection,
-                solanaSigner, // fee payer and signer
-                solanaTokenPublicKey, // mint address
-                signerPublicKey // owner of the token account
-            );
-        } else {
-            const instruction = createAssociatedTokenAccountInstruction(
-                signerPublicKey, // payer
-                tokenAccount, // ATA address
-                signerPublicKey, // token owner
-                solanaTokenPublicKey, // mint address
-            );
-            const tx = new Transaction().add(instruction);
-            tx.feePayer = signerPublicKey;
-            tx.recentBlockhash = (await connection.getLatestBlockhash()).blockhash;
+        const instruction = createAssociatedTokenAccountInstruction(
+            signerPublicKey, // payer
+            tokenAccount, // ATA address
+            signerPublicKey, // token owner
+            solanaTokenPublicKey, // mint address
+        );
+        const tx = new Transaction().add(instruction);
+        const latestBlockhash = await connection.getLatestBlockhash();
+        tx.feePayer = signerPublicKey;
+        tx.recentBlockhash = latestBlockhash.blockhash;
 
-            const signedTx = await solanaSigner.addSignature(tx);
-            txSignature = await connection.sendRawTransaction(signedTx.serialize());
-        }
+        const signedTx = await lockerSolanaSigner.addSignature(tx);
+        const txSignature = await connection.sendRawTransaction(signedTx.serialize());
         console.log("Transaction signature:", txSignature);
+        const txConfirmation = await connection.confirmTransaction(
+            {
+              signature: txSignature,
+              blockhash: latestBlockhash.blockhash,
+              lastValidBlockHeight: latestBlockhash.lastValidBlockHeight,
+            },
+            'confirmed'
+        );
+        console.log("Transaction confirmation:", txConfirmation);
+
+        console.log('Waiting for token account to be created...');
+
+        while(!accountInfo) {
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            tokenAccount = await getAssociatedTokenAddress(
+                solanaTokenPublicKey,
+                signerPublicKey,
+            );
+            accountInfo = await connection.getAccountInfo(tokenAccount);
+
+            if (accountInfo !== null) {
+                break;
+            }
+        }
+
         console.log("Created token account:", tokenAccount.toBase58());
-        // Check if the account exists
-        // TODO: add a while loop to wait for the transaction to be confirmed and the account to be created
 
         return tokenAccount;
     } catch (error) {

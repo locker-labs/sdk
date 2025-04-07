@@ -32,7 +32,7 @@ contract SplitPlugin is BasePlugin {
     // Split config consts
     uint8 internal constant MAX_TOKEN_CONFIGS = 5;
     uint8 internal constant MAX_SPLIT_RECIPIENTS = 10;
-    uint32 internal constant MAX_PERCENTAGE = 10000000;
+    uint32 internal constant MAX_PERCENTAGE = 100_000_000; // 100% in 8 decimal places
 
     struct SplitConfig {
         address tokenAddress; // tokenAddress to be split
@@ -126,8 +126,12 @@ contract SplitPlugin is BasePlugin {
         require(isSplitCreator(_configIndex, msg.sender), "SplitPlugin: Only the creator can update the split config");
 
         uint64 totalPercentage = 0;
+        uint32 minimumPercentage = MAX_PERCENTAGE;
         for (uint8 i = 0; i < _percentages.length; i++) {
             totalPercentage += _percentages[i];
+            if( _percentages[i] < minimumPercentage) {
+                minimumPercentage = _percentages[i];
+            }
         }
         require(totalPercentage == MAX_PERCENTAGE, "SplitPlugin: Invalid percentages");
         require(
@@ -138,6 +142,7 @@ contract SplitPlugin is BasePlugin {
         SplitConfig storage config = splitConfigs[_configIndex];
         config.splitAddresses = _splitAddresses;
         config.percentages = _percentages;
+        config.minTokenAmount = MAX_PERCENTAGE / minimumPercentage;
     }
 
     /// @dev Deletes the split config and removes the index from the user's splitConfigIndexes

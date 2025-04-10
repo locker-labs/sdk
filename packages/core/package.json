@@ -44,9 +44,11 @@
     "build:esm": "tsc --module es2015 --outDir ./_esm && printf '{\"type\": \"module\",\"sideEffects\":false}' > ./_esm/package.json",
     "build:types": "tsc --module esnext --declarationDir ./_types --emitDeclarationOnly --declaration --declarationMap",
     "clean": "rimraf _esm _cjs _types",
-    "format": "biome format . --write",
-    "lint": "biome check .",
-    "lint:fix": "bun run lint --apply"
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check --write ."
   },
   "exports": {
     ".": {

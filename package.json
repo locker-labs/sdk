@@ -1,18 +1,23 @@
 {
-  "workspaces": [
-    "packages/core",
-    "packages/examples/bridge-and-split"
-  ],
+  "workspaces": ["packages/core", "packages/examples/bridge-and-split"],
   "version": "0.0.1",
   "private": true,
   "author": "Locker",
   "type": "module",
   "sideEffects": false,
-  "devDependencies": {},
+  "devDependencies": {
+    "@biomejs/biome": "1.9.4"
+  },
   "description": "",
   "keywords": [],
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "check": "biome check --write ."
+  },
   "simple-git-hooks": {
     "pre-commit": "bun run format && bun run lint:fix"
   }

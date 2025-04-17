@@ -256,4 +256,54 @@ contract SplitPluginTest is Test {
         assertEq(finalBalance1 - initialBalance1, expectedAmount);
         assertEq(finalBalance2 - initialBalance2, expectedAmount);
     }
+
+    function testPostExecutionHookGasUsage() public {
+     uint8 MAX_TOKEN_CONFIGS = 10;
+    uint8 MAX_SPLIT_RECEIPIENTS = 10;
+     uint32 MAX_PERCENTAGE = 100000000; 
+    
+    MockERC20[] memory newTokens = new MockERC20[](MAX_TOKEN_CONFIGS);
+    address[] memory recipients = new address[](MAX_SPLIT_RECEIPIENTS);
+        uint32[] memory percentages = new uint32[](MAX_SPLIT_RECEIPIENTS);
+
+        for(uint8 i =0 ; i < MAX_SPLIT_RECEIPIENTS; i++){
+            recipients[i] = address(uint160(0x600 + i));
+            percentages[i] = MAX_PERCENTAGE/MAX_SPLIT_RECEIPIENTS; 
+        }
+
+    for (uint8 i = 0; i < MAX_TOKEN_CONFIGS; i++) {
+        MockERC20 newToken = new MockERC20();
+        newTokens[i] = newToken;
+        
+
+        vm.prank(address(executor));
+        splitPlugin.createSplit(address(newToken), recipients, percentages);
+
+        newToken.mint(address(executor), 1000 ether);
+    }
+    
+    vm.prank(address(executor));
+    uint256 gasBefore = gasleft();
+    splitPlugin.postExecutionHook(0, "");
+    uint256 gasAfter = gasleft();
+    uint256 gasUsed = gasBefore - gasAfter;
+    
+    uint256 gasThreshold = 30_000_000/2; // 50% of threshold 
+    assertLt(gasUsed, gasThreshold);
+
+    uint256 expectedPerRecipient = 1000 ether / MAX_SPLIT_RECEIPIENTS;
+    for (uint8 j = 0; j < MAX_SPLIT_RECEIPIENTS; j++) {
+        assertEq(
+            newTokens[j].balanceOf(recipients[j]),
+            expectedPerRecipient,
+            "recipient balance wrong"
+        );
+    }
+
+    assertEq(
+        newTokens[0].balanceOf(address(executor)),
+        0,
+        "executor should have zero left"
+    );
+}
 }

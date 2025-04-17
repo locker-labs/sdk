@@ -22,7 +22,7 @@ import {SIG_VALIDATION_PASSED} from "@modular-account/libraries/Constants.sol";
 /// @notice This plugin lets users automatically split tokens on any executoin.
 contract SplitPlugin is BasePlugin {
     string public constant NAME = "Split Plugin";
-    string public constant VERSION = "0.0.1";
+    string public constant VERSION = "1.0.0";
     string public constant AUTHOR = "Locker";
 
     // Dependency indices for using the MultiOwner plugin for validation.
@@ -30,12 +30,12 @@ contract SplitPlugin is BasePlugin {
     uint256 internal constant _MANIFEST_DEPENDENCY_INDEX_OWNER_USER_OP_VALIDATION = 1;
 
     // Split config consts
-    uint8 internal constant MAX_TOKEN_CONFIGS = 5;
-    uint8 internal constant MAX_SPLIT_RECIPIENTS = 10;
+    uint8 internal constant MAX_TOKEN_CONFIGS = 10; // max number of token configs per user
+    uint8 internal constant MAX_SPLIT_RECIPIENTS = 10; // max number of split recipients for a split config
     uint32 internal constant MAX_PERCENTAGE = 100_000_000; // 100% in 8 decimal places
 
     struct SplitConfig {
-        address tokenAddress; // tokenAddress to be split
+        address tokenAddress; // tokenAddress to split
         address[] splitAddresses; // receiver addresses of the split
         uint32[] percentages; // respective percentages of each splitAddress
         uint256 minTokenAmount; // minimum token amount that can be split
@@ -47,22 +47,22 @@ contract SplitPlugin is BasePlugin {
     event SplitConfigDeleted(uint256 indexed configIndex);
     event AutomationSwitched(uint256 indexed configIndex, bool currentState);
 
-    mapping(address => uint256[]) public splitConfigIndexes;
-    mapping(uint256 => SplitConfig) public splitConfigs;
-    uint256 public splitConfigCount;
+    mapping(address => uint256[]) public splitConfigIndexes; // user => split config indexes
+    mapping(uint256 => SplitConfig) public splitConfigs; // split config index => SplitConfig
+    uint256 public splitConfigCount; // total number of split configs created
 
     /// @dev Creates a split configuration for the user
     function createSplit(address _tokenAddress, address[] memory _splitAddresses, uint32[] memory _percentages)
         public
     {
         require(_splitAddresses.length > 0, "SplitPlugin: No split addresses provided");
-        require(_splitAddresses.length < MAX_TOKEN_CONFIGS, "SplitPlugin: Split addresses limit exceeded");
+        require(_splitAddresses.length <= MAX_SPLIT_RECIPIENTS, "SplitPlugin: Split addresses limit exceeded");
         require(
             _splitAddresses.length == _percentages.length,
             "SplitPlugin: Number of split addresses and percentages must be the same"
         );
         uint256[] storage userIndexes = splitConfigIndexes[msg.sender];
-        require(userIndexes.length < MAX_SPLIT_RECIPIENTS, "SplitPlugin: Number of split addresses limit reached");
+        require(userIndexes.length <= MAX_TOKEN_CONFIGS, "SplitPlugin: Number of split addresses limit reached");
         for (uint256 i = 0; i < userIndexes.length; i++) {
             if (splitConfigs[userIndexes[i]].tokenAddress == _tokenAddress) {
                 revert("SplitPlugin: Config for token already exists");
@@ -157,6 +157,7 @@ contract SplitPlugin is BasePlugin {
                 return;
             }
         }
+        revert("SplitPlugin: Split config not found");
     }
 
     /// @dev Checks if the given address is the creator of the split config

@@ -6,7 +6,7 @@ import {
 } from "@solana/spl-token";
 import type { Address } from "viem";
 
-import type { LockerSolanaSigner } from "../../lockerSolanaSigner.js";
+import type { ILockerSolanaSigner } from "../../lockerSolanaSigner.js";
 import { type MessageTransmitter } from './target/types/message_transmitter';
 import { type TokenMessengerMinter } from './target/types/token_messenger_minter';
 import * as MessageTransmitterIDL from './target/idl/message_transmitter.json';
@@ -140,7 +140,7 @@ export function findProgramAddress(
  * @returns The public key of the token account.
  */
 export async function findOrCreateUserTokenAccount(
-    params: IBridgeFromSolanaParams & { lockerSolanaSigner: LockerSolanaSigner }
+    params: IBridgeFromSolanaParams & { lockerSolanaSigner: ILockerSolanaSigner }
 ): Promise<PublicKey> {
     const { solanaTokenAddress, solanaRpcUrl, lockerSolanaSigner } = params;
     const solanaTokenPublicKey = new PublicKey(solanaTokenAddress);

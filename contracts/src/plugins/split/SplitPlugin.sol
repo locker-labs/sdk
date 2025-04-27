@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.19;
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {BasePlugin} from "@modular-account/plugins/BasePlugin.sol";
 import {IPluginExecutor} from "@modular-account/interfaces/IPluginExecutor.sol";
 import {IStandardExecutor} from "@modular-account/interfaces/IStandardExecutor.sol";
@@ -20,9 +21,9 @@ import {SIG_VALIDATION_PASSED} from "@modular-account/libraries/Constants.sol";
 /// @title Split Plugin
 /// @author Locker
 /// @notice This plugin lets users automatically split tokens on any executoin.
-contract SplitPlugin is BasePlugin {
+contract SplitPlugin is BasePlugin, ReentrancyGuard {
     string public constant NAME = "Split Plugin";
-    string public constant VERSION = "1.0.0";
+    string public constant VERSION = "0.1.0";
     string public constant AUTHOR = "Locker";
 
     // Dependency indices for using the MultiOwner plugin for validation.
@@ -45,6 +46,7 @@ contract SplitPlugin is BasePlugin {
     event SplitConfigCreated(address indexed user, uint256 indexed configIndex);
     event SplitExecuted(uint256 indexed configIndex);
     event SplitConfigDeleted(uint256 indexed configIndex);
+    event SplitConfigFailed(uint256 indexed configIndex, bytes err);
     event AutomationSwitched(uint256 indexed configIndex, bool currentState);
 
     mapping(address => uint256[]) public splitConfigIndexes; // user => split config indexes
@@ -98,18 +100,23 @@ contract SplitPlugin is BasePlugin {
         emit AutomationSwitched(_configIndex, !automationState);
     }
 
-    /// @dev Splits the token balance of the user for a config
-    function split(uint256 _configIndex) public {
-        SplitConfig memory config = splitConfigs[_configIndex];
+    /// @dev @dev Splits the token balance of the user for a config
+    function split(uint256 _configIndex) public nonReentrant  {
+        _split(_configIndex, msg.sender);
+    }
+    /// @dev Internal logic: *no* try/catch here, so any revert in a transfer
+    /// aborts the whole loop and bubbles up to `splitExternal`.
+    function _split(uint256 _configIndex, address owner) internal {
+        SplitConfig storage config = splitConfigs[_configIndex];
         IERC20 token = IERC20(config.tokenAddress);
-        uint256 totalSplitAmount = token.balanceOf(address(msg.sender));
+        uint256 totalSplitAmount = token.balanceOf(address(owner));
         if (!config.isSplitEnabled || config.minTokenAmount > totalSplitAmount) {
             return;
         } 
 
         for (uint256 i = 0; i < config.splitAddresses.length; i++) {
             uint256 amount = (totalSplitAmount * config.percentages[i]) / MAX_PERCENTAGE;
-            IPluginExecutor(msg.sender).executeFromPluginExternal(
+            IPluginExecutor(owner).executeFromPluginExternal(
                     config.tokenAddress,
                     0,
                     abi.encodeWithSelector(IERC20.transfer.selector, config.splitAddresses[i], amount)
@@ -203,13 +210,25 @@ contract SplitPlugin is BasePlugin {
         delete splitConfigIndexes[msg.sender];
     }
 
+    /// @dev External entrypoint that forwards to the real logic, passing in the
+    ///    true executor addr so `msg.sender` remains correct for ERC-20 lookups.
+    function splitExternal(uint256 configIndex, address executor) external nonReentrant {
+        require(msg.sender == address(this), "SplitPlugin: only internal");
+        _split(configIndex, executor);
+    }
+
     function postExecutionHook(uint8, bytes calldata) external virtual override {
         uint256[] memory configIndexes = splitConfigIndexes[msg.sender];
         if (configIndexes.length == 0) {
             return;
         }
+        
         for (uint256 i = 0; i < configIndexes.length; i++) {
-            split(configIndexes[i]);
+            try this.splitExternal(configIndexes[i], msg.sender) {
+                // success, nothing to do
+            } catch (bytes memory reason) {
+                emit SplitConfigFailed(configIndexes[i], reason);
+            }
         }
     }
 

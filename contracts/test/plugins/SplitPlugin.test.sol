@@ -49,6 +49,46 @@ contract MockERC20 is IERC20 {
     }
 }
 
+contract MockERC20Fail is IERC20 {
+
+    string public name = "Mock Fail Token";
+    string public symbol = "MCKF";
+    uint8 public decimals = 18;
+     uint256 public totalSupply;
+    mapping(address => uint256) internal balances;
+    mapping(address => mapping(address => uint256)) internal allowances;
+
+    function mint(address to, uint256 amount) external {
+        totalSupply += amount;
+        balances[to] += amount;
+    }
+
+    function balanceOf(address account) external view override returns (uint256) {
+        return balances[account];
+    }
+
+    function transfer(address to, uint256 amount) external override returns (bool) {
+        revert("Transfer failed");
+    }
+
+    function allowance(address owner, address spender) external view override returns (uint256) {
+        return allowances[owner][spender];
+    }
+
+    function approve(address spender, uint256 amount) external override returns (bool) {
+        allowances[msg.sender][spender] = amount;
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external override returns (bool) {
+        require(balances[from] >= amount, "Insufficient balance");
+        require(allowances[from][msg.sender] >= amount, "Allowance exceeded");
+        balances[from] -= amount;
+        allowances[from][msg.sender] -= amount;
+        balances[to] += amount;
+        return true;
+    }
+}
 // A minimal executor contract that implements IPluginExecutor
 contract TestExecutor is IPluginExecutor {
     event Executed(address token, uint256 value, bytes data);
@@ -306,4 +346,46 @@ contract SplitPluginTest is Test {
         "executor should have zero left"
     );
 }
+
+    function testPostExecutionHookHandlesFailures() public {
+        MockERC20Fail badToken = new MockERC20Fail();
+        address[] memory recipientsFail = new address[](1);
+        uint32[] memory percFail = new uint32[](1);
+        recipientsFail[0] = address(0x700);
+        percFail[0] = 100_000_000;  // 100%
+        vm.prank(address(executor));
+        splitPlugin.createSplit(address(badToken), recipientsFail, percFail);
+        vm.stopPrank();
+        badToken.mint(address(executor), 1_000 ether);
+
+        MockERC20 goodToken = new MockERC20();
+        address [] memory recipientsGood = new address[](2);
+        uint32 [] memory percGood = new uint32[](2);
+        recipientsGood[0] = address(0x800);
+        recipientsGood[1] = address(0x801);
+        percGood[0]       = 50_000_000;  // 50%
+        percGood[1]       = 50_000_000;  // 50%
+        vm.prank(address(executor));
+        splitPlugin.createSplit(address(goodToken), recipientsGood, percGood);
+        vm.stopPrank();
+        goodToken.mint(address(executor), 1_000 ether);
+
+        
+
+        vm.prank(address(executor));
+        splitPlugin.postExecutionHook(0, "");
+        vm.prank(address(executor));
+
+
+        assertEq(badToken.balanceOf(recipientsFail[0]), 0, "Bad-token recipient got nothing");
+        assertEq(badToken.balanceOf(address(executor)), 1_000 ether, "Executor kept full bad-token balance");
+
+        uint256 expected = (1_000 ether * 50_000_000) / 100_000_000;
+        require(goodToken.balanceOf(recipientsGood[0]) > 0, "Good-token recipient got nothing");
+        assertEq(
+            goodToken.balanceOf(recipientsGood[1]),
+            expected,
+            "Good-token recipient got wrong amount"
+        );
+    }
 }

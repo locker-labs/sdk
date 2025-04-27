@@ -16,7 +16,7 @@ import type { ILockerClient, ILockerClientParams } from "../accounts/types.js";
 const MAX_PERCENTAGE = 100_000_000;
 
 function convertPercentage(percentage: number): bigint {
-  if (percentage >= 1) {
+  if (percentage > 1) {
     throw new Error("Percentage must be less than 1");
   }
   if (percentage < 0.00000001) {

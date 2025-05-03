@@ -50,6 +50,7 @@ export const SplitPluginAbi = [
       { name: "tokenAddress", type: "address", internalType: "address" },
       { name: "splitAddresses", type: "address[]", internalType: "address[]" },
       { name: "percentages", type: "uint32[]", internalType: "uint32[]" },
+      { name: "minTokenAmount", type: "uint256", internalType: "uint256" },
       { name: "isSplitEnabled", type: "bool", internalType: "bool" },
     ],
     stateMutability: "view",
@@ -457,6 +458,7 @@ export const SplitPluginAbi = [
     inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     outputs: [
       { name: "tokenAddress", type: "address", internalType: "address" },
+      { name: "minTokenAmount", type: "uint256", internalType: "uint256" },
       { name: "isSplitEnabled", type: "bool", internalType: "bool" },
     ],
     stateMutability: "view",

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.19;
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {BasePlugin} from "@modular-account/plugins/BasePlugin.sol";
 import {IPluginExecutor} from "@modular-account/interfaces/IPluginExecutor.sol";
 import {IStandardExecutor} from "@modular-account/interfaces/IStandardExecutor.sol";
@@ -20,9 +21,9 @@ import {SIG_VALIDATION_PASSED} from "@modular-account/libraries/Constants.sol";
 /// @title Split Plugin
 /// @author Locker
 /// @notice This plugin lets users automatically split tokens on any executoin.
-contract SplitPlugin is BasePlugin {
+contract SplitPlugin is BasePlugin, ReentrancyGuard {
     string public constant NAME = "Split Plugin";
-    string public constant VERSION = "0.0.1";
+    string public constant VERSION = "0.1.0";
     string public constant AUTHOR = "Locker";
 
     // Dependency indices for using the MultiOwner plugin for validation.
@@ -30,12 +31,12 @@ contract SplitPlugin is BasePlugin {
     uint256 internal constant _MANIFEST_DEPENDENCY_INDEX_OWNER_USER_OP_VALIDATION = 1;
 
     // Split config consts
-    uint8 internal constant MAX_TOKEN_CONFIGS = 5;
-    uint8 internal constant MAX_SPLIT_RECIPIENTS = 10;
-    uint32 internal constant MAX_PERCENTAGE = 10000000;
+    uint8 internal constant MAX_TOKEN_CONFIGS = 10; // max number of token configs per user
+    uint8 internal constant MAX_SPLIT_RECIPIENTS = 10; // max number of split recipients for a split config
+    uint32 internal constant MAX_PERCENTAGE = 100_000_000; // 100% in 8 decimal places
 
     struct SplitConfig {
-        address tokenAddress; // tokenAddress to be split
+        address tokenAddress; // tokenAddress to split
         address[] splitAddresses; // receiver addresses of the split
         uint32[] percentages; // respective percentages of each splitAddress
         uint256 minTokenAmount; // minimum token amount that can be split
@@ -45,24 +46,25 @@ contract SplitPlugin is BasePlugin {
     event SplitConfigCreated(address indexed user, uint256 indexed configIndex);
     event SplitExecuted(uint256 indexed configIndex);
     event SplitConfigDeleted(uint256 indexed configIndex);
+    event SplitConfigFailed(uint256 indexed configIndex, bytes err);
     event AutomationSwitched(uint256 indexed configIndex, bool currentState);
 
-    mapping(address => uint256[]) public splitConfigIndexes;
-    mapping(uint256 => SplitConfig) public splitConfigs;
-    uint256 public splitConfigCount;
+    mapping(address => uint256[]) public splitConfigIndexes; // user => split config indexes
+    mapping(uint256 => SplitConfig) public splitConfigs; // split config index => SplitConfig
+    uint256 public splitConfigCount; // total number of split configs created
 
     /// @dev Creates a split configuration for the user
     function createSplit(address _tokenAddress, address[] memory _splitAddresses, uint32[] memory _percentages)
         public
     {
         require(_splitAddresses.length > 0, "SplitPlugin: No split addresses provided");
-        require(_splitAddresses.length < MAX_TOKEN_CONFIGS, "SplitPlugin: Split addresses limit exceeded");
+        require(_splitAddresses.length <= MAX_SPLIT_RECIPIENTS, "SplitPlugin: Split addresses limit exceeded");
         require(
             _splitAddresses.length == _percentages.length,
             "SplitPlugin: Number of split addresses and percentages must be the same"
         );
         uint256[] storage userIndexes = splitConfigIndexes[msg.sender];
-        require(userIndexes.length < MAX_SPLIT_RECIPIENTS, "SplitPlugin: Number of split addresses limit reached");
+        require(userIndexes.length <= MAX_TOKEN_CONFIGS, "SplitPlugin: Number of split addresses limit reached");
         for (uint256 i = 0; i < userIndexes.length; i++) {
             if (splitConfigs[userIndexes[i]].tokenAddress == _tokenAddress) {
                 revert("SplitPlugin: Config for token already exists");
@@ -98,18 +100,23 @@ contract SplitPlugin is BasePlugin {
         emit AutomationSwitched(_configIndex, !automationState);
     }
 
-    /// @dev Splits the token balance of the user for a config
-    function split(uint256 _configIndex) public {
-        SplitConfig memory config = splitConfigs[_configIndex];
+    /// @dev @dev Splits the token balance of the user for a config
+    function split(uint256 _configIndex) public nonReentrant  {
+        _split(_configIndex, msg.sender);
+    }
+    /// @dev Internal logic: *no* try/catch here, so any revert in a transfer
+    /// aborts the whole loop and bubbles up to `splitExternal`.
+    function _split(uint256 _configIndex, address owner) internal {
+        SplitConfig storage config = splitConfigs[_configIndex];
         IERC20 token = IERC20(config.tokenAddress);
-        uint256 totalSplitAmount = token.balanceOf(address(msg.sender));
+        uint256 totalSplitAmount = token.balanceOf(address(owner));
         if (!config.isSplitEnabled || config.minTokenAmount > totalSplitAmount) {
             return;
         } 
 
         for (uint256 i = 0; i < config.splitAddresses.length; i++) {
             uint256 amount = (totalSplitAmount * config.percentages[i]) / MAX_PERCENTAGE;
-            IPluginExecutor(msg.sender).executeFromPluginExternal(
+            IPluginExecutor(owner).executeFromPluginExternal(
                     config.tokenAddress,
                     0,
                     abi.encodeWithSelector(IERC20.transfer.selector, config.splitAddresses[i], amount)
@@ -126,8 +133,12 @@ contract SplitPlugin is BasePlugin {
         require(isSplitCreator(_configIndex, msg.sender), "SplitPlugin: Only the creator can update the split config");
 
         uint64 totalPercentage = 0;
+        uint32 minimumPercentage = MAX_PERCENTAGE;
         for (uint8 i = 0; i < _percentages.length; i++) {
             totalPercentage += _percentages[i];
+            if( _percentages[i] < minimumPercentage) {
+                minimumPercentage = _percentages[i];
+            }
         }
         require(totalPercentage == MAX_PERCENTAGE, "SplitPlugin: Invalid percentages");
         require(
@@ -138,6 +149,7 @@ contract SplitPlugin is BasePlugin {
         SplitConfig storage config = splitConfigs[_configIndex];
         config.splitAddresses = _splitAddresses;
         config.percentages = _percentages;
+        config.minTokenAmount = MAX_PERCENTAGE / minimumPercentage;
     }
 
     /// @dev Deletes the split config and removes the index from the user's splitConfigIndexes
@@ -152,6 +164,7 @@ contract SplitPlugin is BasePlugin {
                 return;
             }
         }
+        revert("SplitPlugin: Split config not found");
     }
 
     /// @dev Checks if the given address is the creator of the split config
@@ -197,13 +210,25 @@ contract SplitPlugin is BasePlugin {
         delete splitConfigIndexes[msg.sender];
     }
 
+    /// @dev External entrypoint that forwards to the real logic, passing in the
+    ///    true executor addr so `msg.sender` remains correct for ERC-20 lookups.
+    function splitExternal(uint256 configIndex, address executor) external nonReentrant {
+        require(msg.sender == address(this), "SplitPlugin: only internal");
+        _split(configIndex, executor);
+    }
+
     function postExecutionHook(uint8, bytes calldata) external virtual override {
         uint256[] memory configIndexes = splitConfigIndexes[msg.sender];
         if (configIndexes.length == 0) {
             return;
         }
+        
         for (uint256 i = 0; i < configIndexes.length; i++) {
-            split(configIndexes[i]);
+            try this.splitExternal(configIndexes[i], msg.sender) {
+                // success, nothing to do
+            } catch (bytes memory reason) {
+                emit SplitConfigFailed(configIndexes[i], reason);
+            }
         }
     }
 

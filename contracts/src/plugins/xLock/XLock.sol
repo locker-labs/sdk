@@ -33,11 +33,17 @@ contract XLock is BasePlugin {
     event TrnxExecuted(address indexed sender, bytes xHandle);
 
     address public reclaimAddress;
+    address public xLockerWallet;
     mapping(bytes => address) public xAddresses;
 
     constructor(address _reclaimAddress) {
         reclaimAddress = _reclaimAddress;
     }
+
+    function setXLockerWallet(address _xLockerWallet) external {
+        xLockerWallet = _xLockerWallet;
+    }
+
      /**
      * @notice   Bind a “handle” (arbitrary bytes) to the signer address.
      * @param    xHandle    The raw handle data the user signed.
@@ -90,7 +96,7 @@ contract XLock is BasePlugin {
 
 
 
-        IPluginExecutor(address(this)).executeFromPluginExternal(
+        IPluginExecutor(xLockerWallet).executeFromPluginExternal(
                     target,
                     value,
                     data);

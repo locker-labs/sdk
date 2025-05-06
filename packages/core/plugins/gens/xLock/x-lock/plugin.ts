@@ -129,7 +129,7 @@ export type XLockPluginActions<
   ReadAndEncodeActions;
 
 const addresses = {
-  11155111: "0xAeA689d136d8Fd7098aC8f2c81aEFE1c34c92E3A" as Address,
+  11155111: "0xBc9f3762A996667A6E0d8dfA70092b7EEC1a6557" as Address,
 } as Record<number, Address>;
 
 export const XLockPlugin: Plugin<typeof XLockPluginAbi> = {

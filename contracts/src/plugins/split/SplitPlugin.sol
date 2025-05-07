@@ -110,7 +110,7 @@ contract SplitPlugin is BasePlugin, ReentrancyGuard {
         SplitConfig storage config = splitConfigs[_configIndex];
         IERC20 token = IERC20(config.tokenAddress);
         uint256 totalSplitAmount = token.balanceOf(address(owner));
-        if (!config.isSplitEnabled || config.minTokenAmount > totalSplitAmount) {
+        if (!config.isSplitEnabled || config.minTokenAmount >= totalSplitAmount) {
             return;
         } 
 

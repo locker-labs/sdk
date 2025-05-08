@@ -3,6 +3,7 @@ export const XLockAbi = [
     type: "constructor",
     inputs: [
       { name: "_reclaimAddress", type: "address", internalType: "address" },
+      { name: "_delegationManager", type: "address", internalType: "address" },
     ],
     stateMutability: "nonpayable",
   },
@@ -29,16 +30,12 @@ export const XLockAbi = [
   },
   {
     type: "function",
-    name: "executeXTrnx",
-    inputs: [
-      { name: "", type: "uint8", internalType: "uint8" },
-      { name: "xHandle", type: "bytes", internalType: "bytes" },
-      { name: "target", type: "address", internalType: "address" },
-      { name: "value", type: "uint256", internalType: "uint256" },
-      { name: "data", type: "bytes", internalType: "bytes" },
+    name: "delegationManager",
+    inputs: [],
+    outputs: [
+      { name: "", type: "address", internalType: "contract DelegationManager" },
     ],
-    outputs: [],
-    stateMutability: "nonpayable",
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -391,6 +388,21 @@ export const XLockAbi = [
   },
   {
     type: "function",
+    name: "redeemAndBuyToken",
+    inputs: [
+      { name: "", type: "uint8", internalType: "uint8" },
+      { name: "xHandle", type: "bytes", internalType: "bytes" },
+      { name: "tokenAddress", type: "address", internalType: "address" },
+      { name: "tokenAmount", type: "address", internalType: "address" },
+      { name: "permissionContexts", type: "bytes[]", internalType: "bytes[]" },
+      { name: "modes", type: "bytes32[]", internalType: "ModeCode[]" },
+      { name: "executionCallDatas", type: "bytes[]", internalType: "bytes[]" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "runtimeValidationFunction",
     inputs: [
       { name: "functionId", type: "uint8", internalType: "uint8" },
@@ -404,9 +416,15 @@ export const XLockAbi = [
   {
     type: "function",
     name: "setXAddress",
+    inputs: [{ name: "xHandle", type: "bytes", internalType: "bytes" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setXLockerWallet",
     inputs: [
-      { name: "xHandle", type: "bytes", internalType: "bytes" },
-      { name: "signature", type: "bytes", internalType: "bytes" },
+      { name: "_xLockerWallet", type: "address", internalType: "address" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -462,6 +480,13 @@ export const XLockAbi = [
     type: "function",
     name: "xAddresses",
     inputs: [{ name: "", type: "bytes", internalType: "bytes" }],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "xLockerWallet",
+    inputs: [],
     outputs: [{ name: "", type: "address", internalType: "address" }],
     stateMutability: "view",
   },

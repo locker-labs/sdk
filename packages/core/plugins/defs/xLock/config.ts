@@ -7,7 +7,7 @@ export const XLockPluginGenConfig: PluginConfig = {
   name: "XLockPlugin",
   abi: XLockAbi,
   addresses: {
-    [sepolia.id]: "0xBc9f3762A996667A6E0d8dfA70092b7EEC1a6557",
+    [sepolia.id]: "0x04a8250ABfad42c48401c92773dc86adc93a0B59",
   },
   installConfig: {
     initAbiParams: [],

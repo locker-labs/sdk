@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.0;
 
 import {BasePlugin} from "@modular-account/plugins/BasePlugin.sol";
 import {
@@ -14,6 +14,8 @@ import {
 import {IPluginExecutor} from "@modular-account/interfaces/IPluginExecutor.sol";
 
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@delegation/DelegationManager.sol";
+
 
 
 
@@ -33,11 +35,13 @@ contract XLock is BasePlugin {
     event TrnxExecuted(address indexed sender, bytes xHandle);
 
     address public reclaimAddress;
+    DelegationManager public delegationManager;
     address public xLockerWallet;
     mapping(bytes => address) public xAddresses;
 
-    constructor(address _reclaimAddress) {
+    constructor(address _reclaimAddress, address _delegationManager) {
         reclaimAddress = _reclaimAddress;
+        delegationManager = DelegationManager(_delegationManager);
     }
 
     function setXLockerWallet(address _xLockerWallet) external {
@@ -47,23 +51,12 @@ contract XLock is BasePlugin {
      /**
      * @notice   Bind a “handle” (arbitrary bytes) to the signer address.
      * @param    xHandle    The raw handle data the user signed.
-     * @param    signature  The EIP-191 signature over `xHandle`.
      */
     function setXAddress(
-        bytes calldata xHandle,
-        bytes calldata signature
+        bytes calldata xHandle
     ) external {
-        // 1) Recreate the signed message hash:
-        //    “\x19Ethereum Signed Message:\n<length>” + xHandle
-        bytes32 digest = ECDSA.toEthSignedMessageHash(xHandle);
-
-        // 2) Recover the address that signed it:
-        address signer = ECDSA.recover(digest, signature);
-        require(signer != address(0), "XLock: invalid signature");
-
-        // 4) Store and emit
-        xAddresses[xHandle] = signer;
-        emit XAddressSet(xHandle, signer);
+        xAddresses[xHandle] = msg.sender;
+        emit XAddressSet(xHandle, msg.sender);
     }
     
     function onInstall(bytes calldata data) external virtual override {
@@ -72,43 +65,23 @@ contract XLock is BasePlugin {
     function onUninstall(bytes calldata data) external virtual override {
     }
 
-    function executeXTrnx(
+    function redeemAndBuyToken(
         uint8 ,
         bytes calldata xHandle,
-        address target,
-        uint256 value,
-        bytes calldata data
+        address tokenAddress,
+        address tokenAmount,
+        bytes[] calldata permissionContexts,
+        ModeCode[] calldata modes,
+        bytes[] calldata executionCallDatas
     ) external {
-        // 1) Verify proof, extract xHandle & expected userOpHash from tweet JSON, then
-        // check that keccak256(userOps) matches what was in the tweet before executing.
-        // Reclaim(reclaimAddress).verifyProof(proof);
+        // Redeem delegation and transfer ETH.
+        delegationManager.redeemDelegations(permissionContexts, modes, executionCallDatas);
 
-        // 2) Pull out JSON context from the first proof
-        // string memory ctx = proof.claimInfo.context;
-
-        // 3) Extract the xHandle (if you still need it for event/logging)
-        // string memory handleStr = Claims.extractFieldFromContext(ctx, '"xHandle":"');
-        // bytes memory xHandle = bytes(handleStr);
-
-        // 2) Verify xHandle with the Reclaim contract
-
-        // require(xAddresses[xHandle] != address(0), "XLock: xHandle not set");
-
-
-
-        IPluginExecutor(xLockerWallet).executeFromPluginExternal(
-                    target,
-                    value,
-                    data);
 
         emit TrnxExecuted(msg.sender, xHandle);
     }
 
-     function postExecutionHook(uint8, bytes calldata) external virtual override {
-        
-        
-     }
-
+    
 
     function pluginManifest() external pure override returns (PluginManifest memory manifest) {
         // Declare two dependencies.
@@ -117,14 +90,15 @@ contract XLock is BasePlugin {
         manifest.dependencyInterfaceIds[_MANIFEST_DEPENDENCY_INDEX_OWNER_USER_OP_VALIDATION] = type(IPlugin).interfaceId;
 
         // List the execution functions provided by this plugin.
-        manifest.executionFunctions = new bytes4[](2);
-        manifest.executionFunctions[0] = this.executeXTrnx.selector;
+        manifest.executionFunctions = new bytes4[](3);
+        manifest.executionFunctions[0] = this.redeemAndBuyToken.selector;
         manifest.executionFunctions[1] = this.setXAddress.selector;
+        manifest.executionFunctions[2] = this.setXLockerWallet.selector;
 
         // Delegate user operation validation to the dependency in slot 1.
-        manifest.userOpValidationFunctions = new ManifestAssociatedFunction[](2);
+        manifest.userOpValidationFunctions = new ManifestAssociatedFunction[](3);
         manifest.userOpValidationFunctions[0] = ManifestAssociatedFunction({
-            executionSelector: this.executeXTrnx.selector,
+            executionSelector: this.redeemAndBuyToken.selector,
             associatedFunction: ManifestFunction({
                 functionType: ManifestAssociatedFunctionType.DEPENDENCY,
                 functionId: 0,
@@ -133,6 +107,14 @@ contract XLock is BasePlugin {
         });
         manifest.userOpValidationFunctions[1] = ManifestAssociatedFunction({
             executionSelector: this.setXAddress.selector,
+            associatedFunction: ManifestFunction({
+                functionType: ManifestAssociatedFunctionType.DEPENDENCY,
+                functionId: 0,
+                dependencyIndex: _MANIFEST_DEPENDENCY_INDEX_OWNER_USER_OP_VALIDATION
+            })
+        });
+        manifest.userOpValidationFunctions[2] = ManifestAssociatedFunction({
+            executionSelector: this.setXLockerWallet.selector,
             associatedFunction: ManifestFunction({
                 functionType: ManifestAssociatedFunctionType.DEPENDENCY,
                 functionId: 0,

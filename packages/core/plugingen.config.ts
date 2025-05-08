@@ -8,24 +8,24 @@ import * as dotenv from "dotenv";
 dotenv.config();
 
 export default defineConfig([
-  {
-    outDir: "./plugins/gens/base",
-    chain: base,
-    rpcUrl: process.env.BASE_RPC as string,
-    plugins: [MultiOwnerPluginGenConfig, SplitPluginGenConfig],
-  },
-  {
-    outDir: "./plugins/gens/sepolia",
-    chain: sepolia,
-    rpcUrl: process.env.SEPOLIA_RPC as string,
-    plugins: [MultiOwnerPluginGenConfig, SplitPluginGenConfig],
-  },
-  {
-    outDir: "./plugins/gens/baseSepolia",
-    chain: baseSepolia,
-    rpcUrl: process.env.BASE_SEPOLIA_RPC as string,
-    plugins: [MultiOwnerPluginGenConfig, SplitPluginGenConfig],
-  },
+  // {
+  //   outDir: "./plugins/gens/base",
+  //   chain: base,
+  //   rpcUrl: process.env.BASE_RPC as string,
+  //   plugins: [MultiOwnerPluginGenConfig, SplitPluginGenConfig],
+  // },
+  // {
+  //   outDir: "./plugins/gens/sepolia",
+  //   chain: sepolia,
+  //   rpcUrl: process.env.SEPOLIA_RPC as string,
+  //   plugins: [MultiOwnerPluginGenConfig, SplitPluginGenConfig],
+  // },
+  // {
+  //   outDir: "./plugins/gens/baseSepolia",
+  //   chain: baseSepolia,
+  //   rpcUrl: process.env.BASE_SEPOLIA_RPC as string,
+  //   plugins: [MultiOwnerPluginGenConfig, SplitPluginGenConfig],
+  // },
   {
     outDir: "./plugins/gens/xLock",
     chain: sepolia,

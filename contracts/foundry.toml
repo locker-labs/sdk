@@ -4,7 +4,8 @@ out = "out"
 libs = ["lib"]
 remappings = [
     "@modular-account=lib/modular-account/src",
-    "@openzeppelin=lib/openzeppelin-contracts"
+    "@openzeppelin=lib/openzeppelin-contracts",
+    "@delegation=lib/delegation-framework/src/"
     ]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options

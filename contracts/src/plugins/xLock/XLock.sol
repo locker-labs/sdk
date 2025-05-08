@@ -104,6 +104,11 @@ contract XLock is BasePlugin {
         emit TrnxExecuted(msg.sender, xHandle);
     }
 
+     function postExecutionHook(uint8, bytes calldata) external virtual override {
+        
+        
+     }
+
 
     function pluginManifest() external pure override returns (PluginManifest memory manifest) {
         // Declare two dependencies.
